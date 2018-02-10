@@ -290,10 +290,10 @@ func root(w http.ResponseWriter, r *http.Request) {
         // a slight chance that Greeting that had just been written would not
         // show up in a query.
         // [START query]
-        queryGreeting := datastore.NewQuery("Greeting").Ancestor(guestbookKey(c)).Order("-Date").Limit(10)
+        queryGreeting := datastore.NewQuery("Greeting").Ancestor(guestbookKey(c)).Order("-Date").Limit(20)
         // [END query]
         // [START getall]
-        greetings := make([]Greeting, 0, 10)
+        greetings := make([]Greeting, 0, 20)
         if _, err := queryGreeting.GetAll(c, &greetings); err != nil {
                 http.Error(w, err.Error(), http.StatusInternalServerError)
                 return
@@ -301,10 +301,10 @@ func root(w http.ResponseWriter, r *http.Request) {
         // [END getall]
 
         // [START query]
-        queryMatch := datastore.NewQuery("Match").Ancestor(guestbookKey(c)).Order("-Date").Limit(10)
+        queryMatch := datastore.NewQuery("Match").Ancestor(guestbookKey(c)).Order("-Date").Limit(20)
         // [END query]
         // [START getall]
-        matches := make([]Match, 0, 10)
+        matches := make([]Match, 0, 20)
         if _, err := queryMatch.GetAll(c, &matches); err != nil {
                 http.Error(w, err.Error(), http.StatusInternalServerError)
                 return
@@ -377,39 +377,7 @@ var guestbookTemplate = template.Must(template.New("book").Parse(`
   </style>
   </head>
   <body>
-    <form action="/register">
-        <input type="submit" value="Add a new user" />
-    </form>
-    <form action="/sign" method="post">
-      <div><textarea name="content" rows="3" cols="60"></textarea></div>
-      <div><input type="submit" value="Add new comment"></div>
-    </form>
-    {{range .Greetings}}
-      <p>
-      {{.Date}}
-      {{with .Author}}
-        <b>{{.}}</b> wrote:
-      {{else}}
-        An anonymous person wrote:
-      {{end}}
-      {{.Content}}
-      </p>
-    {{end}}
-    <form action="/add">
-        <input type="submit" value="Add new match result" />
-    </form>
-    {{range .Matches}}
-      <p>
-      {{.Date}}
-      {{with .Submitter}}
-        <b>{{.}}</b> submitted:
-      {{else}}
-        An anonymous person submitted:
-      {{end}}
-      Win: {{.Winner}} ({{.WinnerRatingBefore}} -> {{.WinnerRatingAfter}}) |
-      Loss: {{.Loser}} ({{.LoserRatingBefore}} -> {{.LoserRatingAfter}}) | {{.Note}}
-      </p>
-    {{end}}
+    <h1>Leaderboard</h1>
     <table style="width:100%">
       <tr>
         <th>Name</th>
@@ -426,6 +394,45 @@ var guestbookTemplate = template.Must(template.New("book").Parse(`
         </tr>
       {{end}}
     </table>
+    <p>
+    <form action="/register">
+        <input type="submit" value="Add a user" />
+    </form>
+    <form action="/add">
+        <input type="submit" value="Add a match result" />
+    </form>
+    </p>
+    <h1>Recent Matches</h1>
+    {{range .Matches}}
+      <p>
+      {{.Date}}
+      {{with .Submitter}}
+        <b>{{.}}</b> submitted:
+      {{else}}
+        An anonymous person submitted:
+      {{end}}
+      Win: {{.Winner}} ({{.WinnerRatingBefore}} -> {{.WinnerRatingAfter}}) |
+      Loss: {{.Loser}} ({{.LoserRatingBefore}} -> {{.LoserRatingAfter}}) | {{.Note}}
+      </p>
+    {{end}}
+    <h1>Recent Comments</h1>
+    <form action="/sign" method="post">
+      <div><textarea name="content" rows="3" cols="60"></textarea></div>
+      <p>
+      <div><input type="submit" value="Add a comment"></div>
+      </p>
+    </form>
+    {{range .Greetings}}
+      <p>
+      {{.Date}}
+      {{with .Author}}
+        <b>{{.}}</b> wrote:
+      {{else}}
+        An anonymous person wrote:
+      {{end}}
+      {{.Content}}
+      </p>
+    {{end}}
   </body>
 </html>
 `))
