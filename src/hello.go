@@ -3,6 +3,7 @@ package guestbook
 import (
         "fmt"
         "html/template"
+        "math"
         "net/http"
         "regexp"
         "time"
@@ -26,6 +27,10 @@ type Match struct {
         Submitter  string
         Winner     string
         Loser      string
+        WinnerRatingBefore int // Just for showing the history. Int is enough.
+        WinnerRatingAfter int // Just for showing the history. Int is enough.
+        LoserRatingBefore int // Just for showing the history. Int is enough.
+        LoserRatingAfter int // Just for showing the history. Int is enough.
         Note       string
         Date       time.Time
 }
@@ -35,12 +40,13 @@ type Match struct {
 type UserProfile struct {
         Tournament string
         Name       string
-        Rating     int
+        Rating     float64
         JoinDate   time.Time
 }
 
 type UserDataToShow struct {
-        Profile     UserProfile
+        Name        string
+        Rating      int
         Wins        int
         Losses      int
 }
@@ -85,13 +91,17 @@ func registerUser(w http.ResponseWriter, r *http.Request) {
         fmt.Fprint(w, addUserForm)
 }
 
-func existUser(c appengine.Context, name string) (bool, error) {
+func existUser(c appengine.Context, name string) (bool, datastore.Key, UserProfile, error) {
         q := datastore.NewQuery("UserProfile").Ancestor(guestbookKey(c)).Filter("Name =", name)
         var users []UserProfile
-        if _, err := q.GetAll(c, &users); err != nil {
-                return false, err
+        keys, err := q.GetAll(c, &users)
+        if err != nil {
+                return false, datastore.Key{}, UserProfile{}, err
         }
-        return len(users) != 0, nil
+        if len(users) != 0 {
+                return true, *keys[0], users[0], nil
+        }
+        return false, datastore.Key{}, UserProfile{}, nil
 }
 
 // [START submit_match_result]
@@ -111,7 +121,7 @@ func submitUser(w http.ResponseWriter, r *http.Request) {
                 return
         }
 
-        exist, err := existUser(c, name)
+        exist, _, _, err := existUser(c, name)
         if err != nil {
                 http.Error(w, err.Error(), http.StatusInternalServerError)
                 return
@@ -169,11 +179,18 @@ func submitMatchResult(w http.ResponseWriter, r *http.Request) {
         c := appengine.NewContext(r)
         // [END new_context]
 
-        winner := r.FormValue("winner")
-        loser := r.FormValue("loser")
+        keyWinner := datastore.Key{}
+        keyLoser:= datastore.Key{}
+        winner := UserProfile{}
+        loser := UserProfile{}
+        exist := false
+        var err error
+
+        winner_name := r.FormValue("winner")
+        loser_name := r.FormValue("loser")
 
         // Check winner is registered.
-        exist, err := existUser(c, winner)
+        exist, keyWinner, winner, err = existUser(c, winner_name)
         if err != nil {
                 http.Error(w, err.Error(), http.StatusInternalServerError)
                 return
@@ -185,7 +202,7 @@ func submitMatchResult(w http.ResponseWriter, r *http.Request) {
         }
 
         // Check loser is registered.
-        exist, err = existUser(c, loser)
+        exist, keyLoser, loser, err = existUser(c, loser_name)
         if err != nil {
                 http.Error(w, err.Error(), http.StatusInternalServerError)
                 return
@@ -196,27 +213,69 @@ func submitMatchResult(w http.ResponseWriter, r *http.Request) {
                 return
         }
 
+        oldRatingW := winner.Rating
+        oldRatingL := loser.Rating
+
+        //Get new ELO value
+        expectedScoreW := expectedScore(winner.Rating, loser.Rating)
+        newRatingW := newElo(winner.Rating, expectedScoreW, 1.0)
+
+        expectedScoreL := expectedScore(loser.Rating, winner.Rating)
+        newRatingL := newElo(loser.Rating, expectedScoreL, 0.0)
+
         g := Match{
                 Tournament: "Default",
-                Winner: winner,
-                Loser: loser,
+                Winner: winner_name,
+                Loser: loser_name,
+                WinnerRatingBefore: int(oldRatingW),
+                WinnerRatingAfter: int(newRatingW),
+                LoserRatingBefore: int(oldRatingL),
+                LoserRatingAfter: int(newRatingL),
                 Note: r.FormValue("note"),
                 Date:    time.Now(),
         }
+
         // [START if_user]
         if u := user.Current(c); u != nil {
                 g.Submitter= u.String()
         }
-        // We set the same parent key on every Greeting entity to ensure each Greeting
-        // is in the same entity group. Queries across the single entity group
-        // will be consistent. However, the write rate to a single entity group
-        // should be limited to ~1/second.
+
         key := datastore.NewIncompleteKey(c, "Match", guestbookKey(c))
-        _, err = datastore.Put(c, key, &g)
+
+        keyMatch := &datastore.Key{}
+        keyMatch, err = datastore.Put(c, key, &g)
         if err != nil {
                 http.Error(w, err.Error(), http.StatusInternalServerError)
                 return
         }
+
+        winner.Rating = newRatingW
+        loser.Rating = newRatingL
+
+        // Try to update winner rating.
+        _, err = datastore.Put(c, &keyWinner, &winner)
+        if err != nil {
+                // Remove match entity as best-effort fallback.
+                datastore.Delete(c, keyMatch)
+
+                http.Error(w, err.Error(), http.StatusInternalServerError)
+                return
+        }
+
+        // Try to update loser rating.
+        _, err = datastore.Put(c, &keyLoser, &loser)
+        if err != nil {
+                // Remove match entity as best-effort fallback.
+                datastore.Delete(c, keyMatch)
+                // Change winner rating back.
+                winner.Rating = oldRatingW
+                datastore.Put(c, &keyWinner, &winner)
+
+                http.Error(w, err.Error(), http.StatusInternalServerError)
+                return
+        }
+
+
         http.Redirect(w, r, "/", http.StatusFound)
         // [END if_user]
 
@@ -253,7 +312,7 @@ func root(w http.ResponseWriter, r *http.Request) {
         // [END getall]
 
         // [START query]
-        queryUser := datastore.NewQuery("UserProfile").Ancestor(guestbookKey(c)).Order("Rating")
+        queryUser := datastore.NewQuery("UserProfile").Ancestor(guestbookKey(c)).Order("-Rating")
         // [END query]
         // [START getall]
         var users []UserProfile
@@ -279,7 +338,8 @@ func root(w http.ResponseWriter, r *http.Request) {
                  }
 
                  userDataToShows[i] = UserDataToShow {
-                         Profile: u,
+                         Name: u.Name,
+                         Rating: int(u.Rating),
                          Wins: len(oneUserWin),
                          Losses: len(oneUserLoss),
                  }
@@ -346,7 +406,8 @@ var guestbookTemplate = template.Must(template.New("book").Parse(`
       {{else}}
         An anonymous person submitted:
       {{end}}
-      Win: {{.Winner}} | Loss: {{.Loser}} | {{.Note}}
+      Win: {{.Winner}} ({{.WinnerRatingBefore}} -> {{.WinnerRatingAfter}}) |
+      Loss: {{.Loser}} ({{.LoserRatingBefore}} -> {{.LoserRatingAfter}}) | {{.Note}}
       </p>
     {{end}}
     <table style="width:100%">
@@ -358,8 +419,8 @@ var guestbookTemplate = template.Must(template.New("book").Parse(`
       </tr>
       {{range .UserDataToShows}}
         <tr>
-          <td>{{.Profile.Name}}</td>
-          <td>{{.Profile.Rating}}</td>
+          <td>{{.Name}}</td>
+          <td>{{.Rating}}</td>
           <td>{{.Wins}}</td>
           <td>{{.Losses}}</td>
         </tr>
@@ -396,3 +457,13 @@ func sign(w http.ResponseWriter, r *http.Request) {
         // [END if_user]
 }
 // [END func_sign]
+
+// Expected score of elo_a in a match against elo_b
+func expectedScore(elo_a, elo_b float64) float64{
+    return 1 / (1 + math.Pow(10, (elo_b - elo_a) / 400))
+}
+
+// Get the new Elo rating.
+func newElo(old_elo, expected, score float64) float64 {
+    return old_elo + 32.0 * (score - expected)
+}
