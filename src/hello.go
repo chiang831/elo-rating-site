@@ -29,6 +29,11 @@ type Match struct {
 }
 // [END match_struct]
 
+type RootPageVars struct {
+        Greetings []Greeting
+        Matches []Match
+}
+
 func init() {
         http.HandleFunc("/", root)
         http.HandleFunc("/sign", sign)
@@ -102,16 +107,33 @@ func root(w http.ResponseWriter, r *http.Request) {
         // a slight chance that Greeting that had just been written would not
         // show up in a query.
         // [START query]
-        q := datastore.NewQuery("Greeting").Ancestor(guestbookKey(c)).Order("-Date").Limit(10)
+        query_greeting := datastore.NewQuery("Greeting").Ancestor(guestbookKey(c)).Order("-Date").Limit(10)
         // [END query]
         // [START getall]
         greetings := make([]Greeting, 0, 10)
-        if _, err := q.GetAll(c, &greetings); err != nil {
+        if _, err := query_greeting.GetAll(c, &greetings); err != nil {
                 http.Error(w, err.Error(), http.StatusInternalServerError)
                 return
         }
         // [END getall]
-        if err := guestbookTemplate.Execute(w, greetings); err != nil {
+
+        // [START query]
+        query_match := datastore.NewQuery("Match").Ancestor(guestbookKey(c)).Order("-Date").Limit(10)
+        // [END query]
+        // [START getall]
+        matches := make([]Match, 0, 10)
+        if _, err := query_match.GetAll(c, &matches); err != nil {
+                http.Error(w, err.Error(), http.StatusInternalServerError)
+                return
+        }
+        // [END getall]
+
+        vars := RootPageVars {
+                Greetings: greetings,
+                Matches: matches,
+        }
+
+        if err := guestbookTemplate.Execute(w, vars); err != nil {
                 http.Error(w, err.Error(), http.StatusInternalServerError)
         }
 }
@@ -123,18 +145,32 @@ var guestbookTemplate = template.Must(template.New("book").Parse(`
     <title>Go Guestbook</title>
   </head>
   <body>
-    {{range .}}
+    {{range .Greetings}}
+      <p>
+      {{.Date}}
       {{with .Author}}
-        <p><b>{{.}}</b> wrote:</p>
+        <b>{{.}}</b> wrote:
       {{else}}
-        <p>An anonymous person wrote:</p>
+        An anonymous person wrote:
       {{end}}
-      <pre>{{.Content}}</pre>
+      {{.Content}}
+      </p>
     {{end}}
     <form action="/sign" method="post">
       <div><textarea name="content" rows="3" cols="60"></textarea></div>
-      <div><input type="submit" value="Sign Guestbook"></div>
+      <div><input type="submit" value="Add new comment"></div>
     </form>
+    {{range .Matches}}
+      <p>
+      {{.Date}}
+      {{with .Submitter}}
+        <b>{{.}}</b> submitted:
+      {{else}}
+        An anonymous person submitted:
+      {{end}}
+      {{.Winner}} > {{.Loser}}
+      </p>
+    {{end}}
   </body>
 </html>
 `))
