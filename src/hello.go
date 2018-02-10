@@ -85,6 +85,15 @@ func registerUser(w http.ResponseWriter, r *http.Request) {
         fmt.Fprint(w, addUserForm)
 }
 
+func existUser(c appengine.Context, name string) (bool, error) {
+        q := datastore.NewQuery("UserProfile").Ancestor(guestbookKey(c)).Filter("Name =", name)
+        var users []UserProfile
+        if _, err := q.GetAll(c, &users); err != nil {
+                return false, err
+        }
+        return len(users) != 0, nil
+}
+
 // [START submit_match_result]
 func submitUser(w http.ResponseWriter, r *http.Request) {
         // [START new_context]
@@ -102,6 +111,18 @@ func submitUser(w http.ResponseWriter, r *http.Request) {
                 return
         }
 
+        exist, err := existUser(c, name)
+        if err != nil {
+                http.Error(w, err.Error(), http.StatusInternalServerError)
+                return
+        }
+
+        if exist {
+                http.Error(w, "Already registered", http.StatusBadRequest)
+                return
+        }
+
+        // Is a valid new user.
         const startingElo = 1200
         g := UserProfile{
                 Tournament: "Default",
@@ -110,23 +131,9 @@ func submitUser(w http.ResponseWriter, r *http.Request) {
                 JoinDate: time.Now(),
         }
 
-        // [START query]
-        q := datastore.NewQuery("UserProfile").Ancestor(guestbookKey(c)).Filter("Name =", g.Name)
-        // [END query]
-        // [START getall]
-        var users []UserProfile
-        if _, err := q.GetAll(c, &users); err != nil {
-                http.Error(w, err.Error(), http.StatusInternalServerError)
-                return
-        }
-        if len(users) != 0 {
-                http.Error(w, "Already registered", http.StatusBadRequest)
-                return
-        }
-
         // [END getall]
         key := datastore.NewIncompleteKey(c, "UserProfile", guestbookKey(c))
-        _, err := datastore.Put(c, key, &g)
+        _, err = datastore.Put(c, key, &g)
         if err != nil {
                 http.Error(w, err.Error(), http.StatusInternalServerError)
                 return
@@ -161,10 +168,38 @@ func submitMatchResult(w http.ResponseWriter, r *http.Request) {
         // [START new_context]
         c := appengine.NewContext(r)
         // [END new_context]
+
+        winner := r.FormValue("winner")
+        loser := r.FormValue("loser")
+
+        // Check winner is registered.
+        exist, err := existUser(c, winner)
+        if err != nil {
+                http.Error(w, err.Error(), http.StatusInternalServerError)
+                return
+        }
+
+        if !exist {
+                http.Error(w, "Winner has not registered", http.StatusBadRequest)
+                return
+        }
+
+        // Check loser is registered.
+        exist, err = existUser(c, loser)
+        if err != nil {
+                http.Error(w, err.Error(), http.StatusInternalServerError)
+                return
+        }
+
+        if !exist {
+                http.Error(w, "Loser has not registered", http.StatusBadRequest)
+                return
+        }
+
         g := Match{
                 Tournament: "Default",
-                Winner: r.FormValue("winner"),
-                Loser: r.FormValue("loser"),
+                Winner: winner,
+                Loser: loser,
                 Note: r.FormValue("note"),
                 Date:    time.Now(),
         }
@@ -177,7 +212,7 @@ func submitMatchResult(w http.ResponseWriter, r *http.Request) {
         // will be consistent. However, the write rate to a single entity group
         // should be limited to ~1/second.
         key := datastore.NewIncompleteKey(c, "Match", guestbookKey(c))
-        _, err := datastore.Put(c, key, &g)
+        _, err = datastore.Put(c, key, &g)
         if err != nil {
                 http.Error(w, err.Error(), http.StatusInternalServerError)
                 return
@@ -311,7 +346,7 @@ var guestbookTemplate = template.Must(template.New("book").Parse(`
       {{else}}
         An anonymous person submitted:
       {{end}}
-      {{.Winner}} W {{.Loser}} L {{.Note}}
+      Win: {{.Winner}} | Loss: {{.Loser}} | {{.Note}}
       </p>
     {{end}}
     <table style="width:100%">
