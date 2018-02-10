@@ -49,8 +49,8 @@ func init() {
         http.HandleFunc("/sign", sign)
         http.HandleFunc("/register", registerUser)
         http.HandleFunc("/submit_user", submitUser)
-        http.HandleFunc("/add", add_match_result)
-        http.HandleFunc("/submit_match_result", submit_match_result)
+        http.HandleFunc("/add", addMatchResult)
+        http.HandleFunc("/submit_match_result", submitMatchResult)
 }
 
 // guestbookKey returns the key used for all guestbook entries.
@@ -145,12 +145,12 @@ const addMatchForm = `
 `
 
 // [START add_match_result]
-func add_match_result(w http.ResponseWriter, r *http.Request) {
+func addMatchResult(w http.ResponseWriter, r *http.Request) {
         fmt.Fprint(w, addMatchForm)
 }
 
 // [START submit_match_result]
-func submit_match_result(w http.ResponseWriter, r *http.Request) {
+func submitMatchResult(w http.ResponseWriter, r *http.Request) {
         // [START new_context]
         c := appengine.NewContext(r)
         // [END new_context]
@@ -189,22 +189,22 @@ func root(w http.ResponseWriter, r *http.Request) {
         // a slight chance that Greeting that had just been written would not
         // show up in a query.
         // [START query]
-        query_greeting := datastore.NewQuery("Greeting").Ancestor(guestbookKey(c)).Order("-Date").Limit(10)
+        queryGreeting := datastore.NewQuery("Greeting").Ancestor(guestbookKey(c)).Order("-Date").Limit(10)
         // [END query]
         // [START getall]
         greetings := make([]Greeting, 0, 10)
-        if _, err := query_greeting.GetAll(c, &greetings); err != nil {
+        if _, err := queryGreeting.GetAll(c, &greetings); err != nil {
                 http.Error(w, err.Error(), http.StatusInternalServerError)
                 return
         }
         // [END getall]
 
         // [START query]
-        query_match := datastore.NewQuery("Match").Ancestor(guestbookKey(c)).Order("-Date").Limit(10)
+        queryMatch := datastore.NewQuery("Match").Ancestor(guestbookKey(c)).Order("-Date").Limit(10)
         // [END query]
         // [START getall]
         matches := make([]Match, 0, 10)
-        if _, err := query_match.GetAll(c, &matches); err != nil {
+        if _, err := queryMatch.GetAll(c, &matches); err != nil {
                 http.Error(w, err.Error(), http.StatusInternalServerError)
                 return
         }
