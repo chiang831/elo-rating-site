@@ -4,3 +4,13 @@ indexes:
   properties:
   - name: Date
     direction: desc
+- kind: Match
+  ancestor: yes
+  properties:
+  - name: Date
+    direction: desc
+- kind: UserProfile
+  ancestor: yes
+  properties:
+  - name: Rating
+    direction: desc
