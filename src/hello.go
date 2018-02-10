@@ -25,6 +25,7 @@ type Match struct {
         Submitter  string
         Winner     string
         Loser      string
+        Note       string
         Date       time.Time
 }
 // [END match_struct]
@@ -55,8 +56,9 @@ const addMatchForm = `
   </head>
   <body>
     <form action="/submit_match_result" method="post">
-      <div><p>winner</p><textarea name="winner" rows="3" cols="60"></textarea></div>
-      <div><p>loser</p><textarea name="loser" rows="3" cols="60"></textarea></div>
+      <div><p>WINNER</p><textarea name="winner" rows="1" cols="10"></textarea></div>
+      <div><p>LOSER</p><textarea name="loser" rows="1" cols="10"></textarea></div>
+      <div><p>NOTE</p><textarea name="note" rows="3" cols="20"></textarea></div>
       <div><input type="submit" value="Add a match result"></div>
     </form>
   </body>
@@ -77,6 +79,7 @@ func submit_match_result(w http.ResponseWriter, r *http.Request) {
                 Tournament: "Default",
                 Winner: r.FormValue("winner"),
                 Loser: r.FormValue("loser"),
+                Note: r.FormValue("note"),
                 Date:    time.Now(),
         }
         // [START if_user]
@@ -139,12 +142,17 @@ func root(w http.ResponseWriter, r *http.Request) {
 }
 // [END func_root]
 
+// Template for root page
 var guestbookTemplate = template.Must(template.New("book").Parse(`
 <html>
   <head>
-    <title>Go Guestbook</title>
+    <title>ELO Rating</title>
   </head>
   <body>
+    <form action="/sign" method="post">
+      <div><textarea name="content" rows="3" cols="60"></textarea></div>
+      <div><input type="submit" value="Add new comment"></div>
+    </form>
     {{range .Greetings}}
       <p>
       {{.Date}}
@@ -156,9 +164,8 @@ var guestbookTemplate = template.Must(template.New("book").Parse(`
       {{.Content}}
       </p>
     {{end}}
-    <form action="/sign" method="post">
-      <div><textarea name="content" rows="3" cols="60"></textarea></div>
-      <div><input type="submit" value="Add new comment"></div>
+    <form action="/add">
+        <input type="submit" value="Add new match result" />
     </form>
     {{range .Matches}}
       <p>
@@ -168,7 +175,7 @@ var guestbookTemplate = template.Must(template.New("book").Parse(`
       {{else}}
         An anonymous person submitted:
       {{end}}
-      {{.Winner}} > {{.Loser}}
+      {{.Winner}} W {{.Loser}} L {{.Note}}
       </p>
     {{end}}
   </body>
