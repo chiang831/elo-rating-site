@@ -4,6 +4,7 @@ import (
         "fmt"
         "html/template"
         "net/http"
+        "regexp"
         "time"
 
         "appengine"
@@ -30,6 +31,14 @@ type Match struct {
 }
 // [END match_struct]
 
+// [START user_profile]
+type UserProfile struct {
+        Tournament string
+        Name       string
+        Rating     int
+        JoinDate   time.Time
+}
+
 type RootPageVars struct {
         Greetings []Greeting
         Matches []Match
@@ -38,6 +47,8 @@ type RootPageVars struct {
 func init() {
         http.HandleFunc("/", root)
         http.HandleFunc("/sign", sign)
+        http.HandleFunc("/register", registerUser)
+        http.HandleFunc("/submit_user", submitUser)
         http.HandleFunc("/add", add_match_result)
         http.HandleFunc("/submit_match_result", submit_match_result)
 }
@@ -48,6 +59,74 @@ func guestbookKey(c appengine.Context) *datastore.Key {
         return datastore.NewKey(c, "Guestbook", "default_guestbook", 0, nil)
 }
 
+const addUserForm = `
+<html>
+  <head>
+    <title>Add a user</title>
+  </head>
+  <body>
+    <form action="/submit_user" method="post">
+      <div><p>NAME</p><textarea name="name" rows="1" cols="10"></textarea></div>
+      <div><input type="submit" value="Add a user"></div>
+    </form>
+  </body>
+</html>
+`
+
+// [START add_match_result]
+func registerUser(w http.ResponseWriter, r *http.Request) {
+        fmt.Fprint(w, addUserForm)
+}
+
+// [START submit_match_result]
+func submitUser(w http.ResponseWriter, r *http.Request) {
+        // [START new_context]
+        c := appengine.NewContext(r)
+        // [END new_context]
+
+        // Check valid name
+        name := r.FormValue("name")
+
+        re, _ := regexp.Compile("^[A-Za-z0-9_]{3,20}$")
+
+        isValid := re.MatchString(name)
+        if !isValid {
+                http.Error(w, "Not a valid name", http.StatusBadRequest)
+                return
+        }
+
+        const startingElo = 1200
+        g := UserProfile{
+                Tournament: "Default",
+                Name: name,
+                Rating: startingElo,
+                JoinDate: time.Now(),
+        }
+
+        // [START query]
+        q := datastore.NewQuery("UserProfile").Ancestor(guestbookKey(c)).Filter("Name =", g.Name)
+        // [END query]
+        // [START getall]
+        var users []UserProfile
+        if _, err := q.GetAll(c, &users); err != nil {
+                http.Error(w, err.Error(), http.StatusInternalServerError)
+                return
+        }
+        if len(users) != 0 {
+                http.Error(w, "Already registered", http.StatusBadRequest)
+                return
+        }
+
+        // [END getall]
+        key := datastore.NewIncompleteKey(c, "UserProfile", guestbookKey(c))
+        _, err := datastore.Put(c, key, &g)
+        if err != nil {
+                http.Error(w, err.Error(), http.StatusInternalServerError)
+                return
+        }
+        http.Redirect(w, r, "/", http.StatusFound)
+        // [END if_user]
+}
 
 const addMatchForm = `
 <html>
@@ -149,6 +228,9 @@ var guestbookTemplate = template.Must(template.New("book").Parse(`
     <title>ELO Rating</title>
   </head>
   <body>
+    <form action="/register">
+        <input type="submit" value="Add a new user" />
+    </form>
     <form action="/sign" method="post">
       <div><textarea name="content" rows="3" cols="60"></textarea></div>
       <div><input type="submit" value="Add new comment"></div>
