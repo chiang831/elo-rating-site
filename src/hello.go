@@ -39,9 +39,16 @@ type UserProfile struct {
         JoinDate   time.Time
 }
 
+type UserDataToShow struct {
+        Profile     UserProfile
+        Wins        int
+        Losses      int
+}
+
 type RootPageVars struct {
         Greetings []Greeting
         Matches []Match
+        UserDataToShows []UserDataToShow
 }
 
 func init() {
@@ -210,9 +217,44 @@ func root(w http.ResponseWriter, r *http.Request) {
         }
         // [END getall]
 
+        // [START query]
+        queryUser := datastore.NewQuery("UserProfile").Ancestor(guestbookKey(c)).Order("Rating")
+        // [END query]
+        // [START getall]
+        var users []UserProfile
+        if _, err := queryUser.GetAll(c, &users); err != nil {
+                http.Error(w, err.Error(), http.StatusInternalServerError)
+                return
+        }
+
+        // For each user, query number of wins and losses.
+        userDataToShows := make([]UserDataToShow, len(users))
+        for i, u := range users {
+                 queryOneUserWin := datastore.NewQuery("Match").Ancestor(guestbookKey(c)).Filter("Winner =", u.Name)
+                 var oneUserWin []Match
+                 if _, err := queryOneUserWin.GetAll(c, &oneUserWin); err != nil {
+                        http.Error(w, err.Error(), http.StatusInternalServerError)
+                        return
+                 }
+                 queryOneUserLoss := datastore.NewQuery("Match").Ancestor(guestbookKey(c)).Filter("Loser =", u.Name)
+                 var oneUserLoss []Match
+                 if _, err := queryOneUserLoss.GetAll(c, &oneUserLoss); err != nil {
+                        http.Error(w, err.Error(), http.StatusInternalServerError)
+                        return
+                 }
+
+                 userDataToShows[i] = UserDataToShow {
+                         Profile: u,
+                         Wins: len(oneUserWin),
+                         Losses: len(oneUserLoss),
+                 }
+        }
+
+        // Fill in template.
         vars := RootPageVars {
                 Greetings: greetings,
                 Matches: matches,
+                UserDataToShows: userDataToShows,
         }
 
         if err := guestbookTemplate.Execute(w, vars); err != nil {
@@ -226,6 +268,18 @@ var guestbookTemplate = template.Must(template.New("book").Parse(`
 <html>
   <head>
     <title>ELO Rating</title>
+  <style>
+    table, th, td {
+        border: 1px solid black;
+        border-collapse: collapse;
+    }
+    th, td {
+        padding: 5px;
+    }
+    th {
+        text-align: left;
+    }
+  </style>
   </head>
   <body>
     <form action="/register">
@@ -260,6 +314,22 @@ var guestbookTemplate = template.Must(template.New("book").Parse(`
       {{.Winner}} W {{.Loser}} L {{.Note}}
       </p>
     {{end}}
+    <table style="width:100%">
+      <tr>
+        <th>Name</th>
+        <th>Rating</th>
+        <th>Wins</th>
+        <th>Losses</th>
+      </tr>
+      {{range .UserDataToShows}}
+        <tr>
+          <td>{{.Profile.Name}}</td>
+          <td>{{.Profile.Rating}}</td>
+          <td>{{.Wins}}</td>
+          <td>{{.Losses}}</td>
+        </tr>
+      {{end}}
+    </table>
   </body>
 </html>
 `))
