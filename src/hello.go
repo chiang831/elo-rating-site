@@ -67,6 +67,7 @@ func init() {
         http.HandleFunc("/add", addMatchResult)
         http.HandleFunc("/submit_match_result", submitMatchResult)
         http.HandleFunc("/users", listUsers)
+        http.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.Dir("static"))))
 }
 
 // guestbookKey returns the key used for all guestbook entries.
