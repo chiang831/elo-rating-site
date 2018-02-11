@@ -1,6 +1,7 @@
 package guestbook
 
 import (
+        "encoding/json"
         "fmt"
         "html/template"
         "path"
@@ -65,6 +66,7 @@ func init() {
         http.HandleFunc("/submit_user", submitUser)
         http.HandleFunc("/add", addMatchResult)
         http.HandleFunc("/submit_match_result", submitMatchResult)
+        http.HandleFunc("/users", listUsers)
 }
 
 // guestbookKey returns the key used for all guestbook entries.
@@ -449,6 +451,25 @@ func sign(w http.ResponseWriter, r *http.Request) {
         // [END if_user]
 }
 // [END func_sign]
+
+func listUsers(w http.ResponseWriter, r *http.Request) {
+        c := appengine.NewContext(r)
+        queryUser := datastore.NewQuery("UserProfile").Ancestor(guestbookKey(c)).Order("Name")
+        var users []UserProfile
+        if _, err := queryUser.GetAll(c, &users); err != nil {
+                http.Error(w, err.Error(), http.StatusInternalServerError)
+                return
+        }
+
+        js, err_js := json.Marshal(users)
+        if err_js != nil {
+                http.Error(w, err_js.Error(), http.StatusInternalServerError)
+                return
+        }
+
+        w.Header().Set("Content-Type", "application/json")
+        w.Write(js)
+}
 
 // Expected score of elo_a in a match against elo_b
 func expectedScore(elo_a, elo_b float64) float64{
