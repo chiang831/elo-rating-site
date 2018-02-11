@@ -14,3 +14,7 @@ indexes:
   properties:
   - name: Rating
     direction: desc
+- kind: UserProfile
+  ancestor: yes
+  properties:
+  - name: Name
