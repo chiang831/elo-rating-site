@@ -93,7 +93,7 @@ const addUserForm = `
     <h1>
     <form action="/submit_user" method="post">
       <div><p>Add a user</p><textarea name="name" rows="1" cols="10"></textarea></div>
-      <button type="submit" class="btn-success">"Confirm"></button>
+      <button type="submit" class="btn-success">Confirm</button>
     </form>
     </h1>
   </body>
