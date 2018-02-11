@@ -181,6 +181,11 @@ func submitMatchResult(w http.ResponseWriter, r *http.Request) {
         log.Printf("winner_name: %s", winner_name)
         log.Printf("loser_name: %s", loser_name)
 
+        if winner_name == loser_name {
+                http.Error(w, "Winner should not be the same as loser.",
+                           http.StatusBadRequest)
+        }
+
         // Check winner is registered.
         exist, keyWinner, winner, err = existUser(c, winner_name)
         if err != nil {
