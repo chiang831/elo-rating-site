@@ -3,6 +3,7 @@ package guestbook
 import (
         "fmt"
         "html/template"
+        "path"
         "math"
         "net/http"
         "regexp"
@@ -152,25 +153,9 @@ func submitUser(w http.ResponseWriter, r *http.Request) {
         // [END if_user]
 }
 
-const addMatchForm = `
-<html>
-  <head>
-    <title>Add a match result</title>
-  </head>
-  <body>
-    <form action="/submit_match_result" method="post">
-      <div><p>WINNER</p><textarea name="winner" rows="1" cols="10"></textarea></div>
-      <div><p>LOSER</p><textarea name="loser" rows="1" cols="10"></textarea></div>
-      <div><p>NOTE</p><textarea name="note" rows="3" cols="20"></textarea></div>
-      <div><input type="submit" value="Add a match result"></div>
-    </form>
-  </body>
-</html>
-`
-
 // [START add_match_result]
 func addMatchResult(w http.ResponseWriter, r *http.Request) {
-        fmt.Fprint(w, addMatchForm)
+        http.ServeFile(w, r, path.Join("static", "add.html"))
 }
 
 // [START submit_match_result]
