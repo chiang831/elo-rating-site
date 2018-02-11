@@ -1,15 +1,34 @@
+<!DOCTYPE html>
 <html>
-  <head>
-    <title>Add a match result</title>
-  </head>
-  <body>
-    <script src="/static/js/add.js"></script>
-    <form action="/submit_match_result" method="post">
-      <div><p>WINNER</p><textarea name="winner" rows="1" cols="10"></textarea></div>
-      <div><p>LOSER</p><textarea name="loser" rows="1" cols="10"></textarea></div>
-      <div><p>NOTE</p><textarea name="note" rows="3" cols="20"></textarea></div>
-      <div><input type="submit" value="Add a match result"></div>
-    </form>
-    <div id="test1">origin</div>
-  </body>
+<head>
+<title>Add a match result</title>
+<script src="http://unpkg.com/vue@2.1.10"></script>
+<script src="http://unpkg.com/vue-select@latest"></script>
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width">
+</head>
+<body>
+  <form action="/submit_match_result" method="post">
+    <div id="winner_select" class="container-fluid">
+      <h2 class="page-header">Winner</h2>
+      <v-select ref="vselect" v-model="selected" label="Name" :options="users"></v-select>
+      <textarea name="winner" style="display:none">{{selected.Name}}</textarea>
+    </div>
+    <div id="loser_select" class="container-fluid">
+      <h2 class="page-header">Loser</h2>
+      <v-select ref="vselect" v-model="selected" label="Name" :options="users"></v-select>
+      <textarea name="loser" style="display:none">{{selected.Name}}</textarea>
+    </div>
+    <div>
+      <h2>NOTE
+      <p><textarea name="note" rows="5" cols="30"></textarea></p>
+      </h2>
+    </div>
+    <h2>
+    <button type="submit" class="btn-success">Add</button>
+    </h2>
+  </form>
+  <script src="/static/js/add.js"></script>
+</body>
 </html>

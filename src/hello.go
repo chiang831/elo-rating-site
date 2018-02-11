@@ -5,6 +5,7 @@ import (
         "fmt"
         "html/template"
         "path"
+        "log"
         "math"
         "net/http"
         "regexp"
@@ -176,6 +177,9 @@ func submitMatchResult(w http.ResponseWriter, r *http.Request) {
 
         winner_name := r.FormValue("winner")
         loser_name := r.FormValue("loser")
+
+        log.Printf("winner_name: %s", winner_name)
+        log.Printf("loser_name: %s", loser_name)
 
         // Check winner is registered.
         exist, keyWinner, winner, err = existUser(c, winner_name)
