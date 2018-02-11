@@ -5,11 +5,18 @@
 <script src="https://unpkg.com/vue@2.1.10"></script>
 <script src="https://unpkg.com/vue-select@latest"></script>
 <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+<style>
+  body {
+    margin: 5;
+    text-align: center;
+  }
+</style>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width">
 </head>
 <body onload="getUsers()">
   <form action="/submit_match_result" method="post">
+    <h1>Add a Match Result</h1>
     <div id="winner_select" class="container-fluid">
       <h2 class="page-header">Winner</h2>
       <v-select ref="vselect" v-model="selected" label="Name" :options="users"></v-select>
@@ -21,12 +28,12 @@
       <textarea name="loser" style="display:none">{{selected.Name}}</textarea>
     </div>
     <div>
-      <h2>NOTE
+      <h2>Result / Note
       <p><textarea name="note" rows="5" cols="30"></textarea></p>
       </h2>
     </div>
     <h2>
-    <button type="submit" class="btn-success">Add</button>
+    <button type="submit" class="btn-success">Confirm</button>
     </h2>
   </form>
   <script src="/static/js/add.js"></script>

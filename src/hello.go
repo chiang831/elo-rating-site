@@ -81,12 +81,21 @@ const addUserForm = `
 <html>
   <head>
     <title>Add a user</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+    <style>
+      body {
+          margin: 5;
+          text-align: center;
+      }
+    </style>
   </head>
   <body>
+    <h1>
     <form action="/submit_user" method="post">
-      <div><p>NAME</p><textarea name="name" rows="1" cols="10"></textarea></div>
-      <div><input type="submit" value="Add a user"></div>
+      <div><p>Add a user</p><textarea name="name" rows="1" cols="10"></textarea></div>
+      <button type="submit" class="btn-success">"Confirm"></button>
     </form>
+    </h1>
   </body>
 </html>
 `
@@ -360,25 +369,30 @@ var guestbookTemplate = template.Must(template.New("book").Parse(`
 <html>
   <head>
     <title>ELO Rating</title>
-  <style>
-    table, th, td {
-        border: 1px solid black;
-        border-collapse: collapse;
-    }
-    th, td {
-        padding: 5px;
-    }
-    th {
-        text-align: left;
-    }
-  </style>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+    <style>
+      body {
+          margin: 5;
+          text-align: center;
+      }
+      table, th, td {
+          border: 1px solid black;
+          border-collapse: collapse;
+      }
+      th, td {
+          padding: 5px;
+      }
+      th {
+          text-align: left;
+      }
+    </style>
   </head>
   <body>
     <h1>Leaderboard</h1>
     <table style="width:100%">
       <tr>
         <th>Name</th>
-        <th>Rating</th>
+        <th><a href="https://en.wikipedia.org/wiki/Elo_rating_system">ELO Rating</a></th>
         <th>Wins</th>
         <th>Losses</th>
       </tr>
@@ -391,32 +405,36 @@ var guestbookTemplate = template.Must(template.New("book").Parse(`
         </tr>
       {{end}}
     </table>
-    <p>
+    <h2>
     <form action="/register">
-        <input type="submit" value="Add a user" />
+        <button type="submit" class="btn-success">Add a user</button>
     </form>
+    </h2>
+    <h2>
     <form action="/add">
-        <input type="submit" value="Add a match result" />
+        <button type="submit" class="btn-success">Add a match result</button>
     </form>
-    </p>
+    </h2>
     <h1>Recent Matches</h1>
     {{range .Matches}}
       <p>
       {{.Date}}
       {{with .Submitter}}
-        <b>{{.}}</b> submitted:
+        {{.}} submitted:
       {{else}}
         An anonymous person submitted:
       {{end}}
+      </p>
+      <h3>
       Win: {{.Winner}} ({{.WinnerRatingBefore}} -> {{.WinnerRatingAfter}}) |
       Loss: {{.Loser}} ({{.LoserRatingBefore}} -> {{.LoserRatingAfter}}) | {{.Note}}
-      </p>
+      </h3>
     {{end}}
     <h1>Recent Comments</h1>
     <form action="/sign" method="post">
       <div><textarea name="content" rows="3" cols="60"></textarea></div>
       <p>
-      <div><input type="submit" value="Add a comment"></div>
+      <div><button type="submit" class="btn-success">Confirm</button></div>
       </p>
     </form>
     {{range .Greetings}}
@@ -427,8 +445,10 @@ var guestbookTemplate = template.Must(template.New("book").Parse(`
       {{else}}
         An anonymous person wrote:
       {{end}}
-      {{.Content}}
       </p>
+      <h3>
+      {{.Content}}
+      </h3>
     {{end}}
   </body>
 </html>
