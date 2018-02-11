@@ -463,6 +463,13 @@ func sign(w http.ResponseWriter, r *http.Request) {
                 Content: r.FormValue("content"),
                 Date:    time.Now(),
         }
+
+        // Ignore empty comment.
+        if len(g.Content) == 0 {
+                http.Redirect(w, r, "/", http.StatusFound)
+                return
+        }
+
         // [START if_user]
         if u := user.Current(c); u != nil {
                 g.Author = u.String()
