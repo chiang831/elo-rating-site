@@ -54,9 +54,14 @@ type UserDataToShow struct {
         Losses      int
 }
 
+type MatchToShow struct {
+        Match       Match
+        Expected    bool //Use this to show different icon for underdog.
+}
+
 type RootPageVars struct {
         Greetings []Greeting
-        Matches []Match
+        MatchToShows []MatchToShow
         UserDataToShows []UserDataToShow
 }
 
@@ -351,10 +356,18 @@ func root(w http.ResponseWriter, r *http.Request) {
                  }
         }
 
+	matchToShows := make([]MatchToShow, len(matches))
+	for ind, m := range matches {
+                matchToShows[ind] = MatchToShow {
+                       Match: m,
+		       Expected: m.WinnerRatingBefore >= m.LoserRatingBefore,
+	        }
+	}
+
         // Fill in template.
         vars := RootPageVars {
                 Greetings: greetings,
-                Matches: matches,
+                MatchToShows: matchToShows,
                 UserDataToShows: userDataToShows,
         }
 
@@ -418,18 +431,23 @@ var guestbookTemplate = template.Must(template.New("book").Parse(`
     </form>
     </h2>
     <h1>Recent Matches</h1>
-    {{range .Matches}}
+    {{range .MatchToShows}}
       <p>
-      {{.Date}}
-      {{with .Submitter}}
+      {{.Match.Date}}
+      {{with .Match.Submitter}}
         {{.}} submitted:
       {{else}}
         An anonymous person submitted:
       {{end}}
       </p>
       <h3>
-      {{.Winner}} ({{.WinnerRatingBefore}} &#x27a8; {{.WinnerRatingAfter}}) &#9876;
-      {{.Loser}} ({{.LoserRatingBefore}} &#x27a8; {{.LoserRatingAfter}})  {{.Note}}
+      {{.Match.Winner}} ({{.Match.WinnerRatingBefore}} &#x27a8; {{.Match.WinnerRatingAfter}})
+      {{with .Expected}}
+      &#9876;
+      {{else}}
+      &#x1F525;
+      {{end}}
+      {{.Match.Loser}} ({{.Match.LoserRatingBefore}} &#x27a8; {{.Match.LoserRatingAfter}})  {{.Match.Note}}
       </h3>
     {{end}}
     <h1>Recent Comments</h1>
