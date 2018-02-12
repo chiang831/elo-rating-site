@@ -428,8 +428,8 @@ var guestbookTemplate = template.Must(template.New("book").Parse(`
       {{end}}
       </p>
       <h3>
-      Win: {{.Winner}} ({{.WinnerRatingBefore}} -> {{.WinnerRatingAfter}}) |
-      Loss: {{.Loser}} ({{.LoserRatingBefore}} -> {{.LoserRatingAfter}}) | {{.Note}}
+      {{.Winner}} ({{.WinnerRatingBefore}} &#x27a8; {{.WinnerRatingAfter}}) &#9876;
+      {{.Loser}} ({{.LoserRatingBefore}} &#x27a8; {{.LoserRatingAfter}})  {{.Note}}
       </h3>
     {{end}}
     <h1>Recent Comments</h1>
