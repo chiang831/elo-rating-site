@@ -85,22 +85,31 @@ func guestbookKey(c appengine.Context) *datastore.Key {
 const addUserForm = `
 <html>
   <head>
-    <title>Add a user</title>
+    <title>Add a player</title>
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
     <style>
       body {
           margin: 5;
           text-align: center;
       }
+      @font-face {
+          font-family: Tetrominoes;
+          src: url('/static/Tetrominoes.ttf');
+      }
+      h1 {
+        font-family: Tetrominoes;
+        font-weight: bold;
+      }
     </style>
   </head>
   <body>
-    <h1>
+    <h1>Add A Player</h1>
+    <h2>
     <form action="/submit_user" method="post">
-      <div><p>Add a user</p><textarea name="name" rows="1" cols="10"></textarea></div>
+      <p><textarea name="name" rows="1" cols="10"></textarea></p>
       <button type="submit" class="btn-success">Confirm</button>
     </form>
-    </h1>
+    </h2>
   </body>
 </html>
 `
@@ -460,9 +469,9 @@ var guestbookTemplate = template.Must(template.New("book").Parse(`
     {{end}}
     <h1>Recent Comments</h1>
     <form action="/sign" method="post">
-      <div><textarea name="content" rows="3" cols="60"></textarea></div>
+      <p><textarea name="content" rows="3" cols="60"></textarea></p>
       <p>
-      <div><button type="submit" class="btn-success">Confirm</button></div>
+      <h2><button type="submit" class="btn-success">Add comment</button></h2>
       </p>
     </form>
     {{range .Greetings}}
