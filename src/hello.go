@@ -398,6 +398,14 @@ var guestbookTemplate = template.Must(template.New("book").Parse(`
       th {
           text-align: left;
       }
+      @font-face {
+          font-family: Tetrominoes;
+          src: url('/static/Tetrominoes.ttf');
+      }
+      h1 {
+          font-family: Tetrominoes;
+	  font-weight: bold;
+      }
     </style>
   </head>
   <body>
@@ -471,6 +479,9 @@ var guestbookTemplate = template.Must(template.New("book").Parse(`
       </h3>
     {{end}}
   </body>
+  <foot>
+  Font credit: The FontStruction <a href="https://fontstruct.com/fontstructions/show/389448">Tetrominoes</a> by tp2-marriott
+  </foot>
 </html>
 `))
 
