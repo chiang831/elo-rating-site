@@ -389,9 +389,10 @@ var guestbookTemplate = template.Must(template.New("book").Parse(`
   </head>
   <body>
     <h1>Leaderboard</h1>
-    <table style="width:100%">
+    <h2>
+    <table style="width:40%;margin-left:auto;margin-right:auto">
       <tr>
-        <th>Name</th>
+        <th>Player</th>
         <th><a href="https://en.wikipedia.org/wiki/Elo_rating_system">ELO Rating</a></th>
         <th>Wins</th>
         <th>Losses</th>
@@ -405,9 +406,10 @@ var guestbookTemplate = template.Must(template.New("book").Parse(`
         </tr>
       {{end}}
     </table>
+    </h2>
     <h2>
     <form action="/register">
-        <button type="submit" class="btn-success">Add a user</button>
+        <button type="submit" class="btn-success">Add a player</button>
     </form>
     </h2>
     <h2>
