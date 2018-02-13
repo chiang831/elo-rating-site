@@ -3,12 +3,14 @@ Vue.component('v-select', VueSelect.VueSelect);
 function createVueElements(r) {
   users = JSON.parse(r);
   console.log("users = " + users);
+  var names = users.map(u => u.Name);
+  console.log("names = " + names);
   var v_w = new Vue({
     el: '#winner_select',
     data: function() {
         return {
-          users: users,
-          selected: {"Name": " "}
+          names: names,
+          selected: ""
        }
     },
 
@@ -20,8 +22,8 @@ function createVueElements(r) {
     el: '#loser_select',
     data: function() {
         return {
-          users: users,
-          selected: {"Name": " "}
+          names: names,
+          selected: ""
        }
     },
 

@@ -27,13 +27,13 @@
     <h1>Add a Match Result</h1>
     <div id="winner_select" class="container-fluid" style="width:50%; text-align:left">
       <h2 class="page-header">Winner</h2>
-      <v-select ref="vselect" v-model="selected" label="Name" :options="users"></v-select>
-      <textarea name="winner" style="display:none">{{selected.Name}}</textarea>
+      <v-select ref="vselect" v-model="selected" :options="names"></v-select>
+      <textarea name="winner" style="display:none">{{selected}}</textarea>
     </div>
     <div id="loser_select" class="container-fluid" style="width:50%; text-align:left">
       <h2 class="page-header">Loser</h2>
-      <v-select ref="vselect" v-model="selected" label="Name" :options="users"></v-select>
-      <textarea name="loser" style="display:none">{{selected.Name}}</textarea>
+      <v-select ref="vselect" v-model="selected" :options="names"></v-select>
+      <textarea name="loser" style="display:none">{{selected}}</textarea>
     </div>
     <div>
       <h2>Result / Note
