@@ -450,12 +450,12 @@ var guestbookTemplate = template.Must(template.New("book").Parse(`
     </h2>
     <h2>
     <form action="/register">
-        <button type="submit" class="btn-success">Add a player</button>
+        <button type="submit" class="btn-success">Add a Player</button>
     </form>
     </h2>
     <h2>
     <form action="/add">
-        <button type="submit" class="btn-success">Add a match result</button>
+        <button type="submit" class="btn-success">Add a Match Result</button>
     </form>
     </h2>
     <h1>Recent Matches</h1>
