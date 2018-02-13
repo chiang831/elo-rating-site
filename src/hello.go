@@ -73,6 +73,7 @@ func init() {
         http.HandleFunc("/add", addMatchResult)
         http.HandleFunc("/submit_match_result", submitMatchResult)
         http.HandleFunc("/users", listUsers)
+        http.HandleFunc("/latest_match", latestMatch)
         http.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.Dir("static"))))
 }
 
@@ -81,6 +82,9 @@ func guestbookKey(c appengine.Context) *datastore.Key {
         // The string "default_guestbook" here could be varied to have multiple guestbooks.
         return datastore.NewKey(c, "Guestbook", "default_guestbook", 0, nil)
 }
+
+var existLatestMatch = false
+var latestMatchToShow MatchToShow
 
 const addUserForm = `
 <html>
@@ -296,7 +300,13 @@ func submitMatchResult(w http.ResponseWriter, r *http.Request) {
         }
 
 
-        http.Redirect(w, r, "/", http.StatusFound)
+        existLatestMatch = true;
+        latestMatchToShow = MatchToShow {
+                Match: g,
+		Expected: oldRatingW >= oldRatingL,
+        }
+
+        http.Redirect(w, r, "/add", http.StatusFound)
         // [END if_user]
 
 }
@@ -539,6 +549,28 @@ func listUsers(w http.ResponseWriter, r *http.Request) {
         }
 
         js, err_js := json.Marshal(users)
+        if err_js != nil {
+                http.Error(w, err_js.Error(), http.StatusInternalServerError)
+                return
+        }
+
+        w.Header().Set("Content-Type", "application/json")
+        w.Write(js)
+}
+
+func latestMatch(w http.ResponseWriter, r *http.Request) {
+	if !existLatestMatch {
+                nil_js, nil_err_js := json.Marshal(nil)
+                if nil_err_js != nil {
+                        http.Error(w, nil_err_js.Error(), http.StatusInternalServerError)
+			return
+		}
+                w.Header().Set("Content-Type", "application/json")
+                w.Write(nil_js)
+                return
+        }
+
+        js, err_js := json.Marshal(latestMatchToShow)
         if err_js != nil {
                 http.Error(w, err_js.Error(), http.StatusInternalServerError)
                 return

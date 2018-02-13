@@ -22,7 +22,8 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width">
 </head>
-<body onload="getUsers()">
+<body onload="onLoad()">
+  <h4><div class="alert alert-success", id="message", style="display:none"></div></h4>
   <form action="/submit_match_result" method="post">
     <h1>Add a Match Result</h1>
     <div id="winner_select" class="container-fluid" style="width:50%; text-align:left">
@@ -30,6 +31,7 @@
       <v-select ref="vselect" v-model="selected" :options="names"></v-select>
       <textarea name="winner" style="display:none">{{selected}}</textarea>
     </div>
+    <h3><button type="button" onclick="switchSelected()" class="btn-success">Switch</button></h3>
     <div id="loser_select" class="container-fluid" style="width:50%; text-align:left">
       <h2 class="page-header">Loser</h2>
       <v-select ref="vselect" v-model="selected" :options="names"></v-select>
