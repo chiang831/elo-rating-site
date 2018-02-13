@@ -88,6 +88,7 @@ var latestMatchToShow MatchToShow
 
 const addUserForm = `
 <html>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <head>
     <title>Add a player</title>
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
