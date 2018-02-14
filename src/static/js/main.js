@@ -102,7 +102,7 @@ function fillInMatches(r) {
                  " <font color=\"red\">&#x27a8;</font> " +
                  match.LoserRatingAfter + ") " +
                  match.Note + "</h3>";
-    var log = "( Submitted by " + match.Submitter + " @ " + match.Date + " )";
+    var log = "( Submitted by " + getName(match.Submitter) + " @ " + getTime(match.Date) + " )";
     content += "<div><div class=\"Match\">" + result + log + "</div></div>";
   }
   matches_div.innerHTML = content;
@@ -114,10 +114,25 @@ function fillInGreetings(r) {
   var content = "";
   for (var i in greetings) {
     greeting = greetings[i];
-    var message = "<b>" + greeting.Author + "</b> wrote:" +
+    var message = "<b>" + getName(greeting.Author) + "</b> wrote:" +
                   "<h3>" + greeting.Content + "</h3>" +
-                  "( timestamp: " + greeting.Date + " )";
+                  "( Timestamp: " + getTime(greeting.Date) + " )";
     content += "<div><div class=\"Greeting\">" + message + "</div><div>";
   }
   greetings_div.innerHTML = content;
+}
+
+// Remove everything after '@'
+function getName(name) {
+  var idx = name.indexOf("@");
+  if (idx != -1) {
+    return name.substr(0, idx);
+  }
+  return name;
+}
+
+// Transform to local time
+function getTime(dateString) {
+  var date = new Date(dateString)
+  return date.toLocaleString();
 }
