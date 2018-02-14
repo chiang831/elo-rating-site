@@ -647,8 +647,10 @@ func newElo(old_elo, expected, score float64) float64 {
 
 // Get the color of win/lose/tie
 func getColor(wins, losses int) string {
-    if wins > losses {
-        return "lime"
+    if (wins == 0) && (losses == 0) {
+        return "white"
+    } else if wins > losses {
+        return "limegreen"
     } else if wins < losses {
         return "tomato"
     } else {
