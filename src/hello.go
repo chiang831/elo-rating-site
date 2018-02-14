@@ -2,7 +2,6 @@ package guestbook
 
 import (
         "encoding/json"
-        "fmt"
         "html/template"
         "path"
         "log"
@@ -10,7 +9,6 @@ import (
         "net/http"
         "regexp"
         "time"
-
         "appengine"
         "appengine/datastore"
         "appengine/user"
@@ -80,9 +78,9 @@ type RootPageVars struct {
 func init() {
         http.HandleFunc("/", root)
         http.HandleFunc("/sign", sign)
-        http.HandleFunc("/register", registerUser)
+        http.HandleFunc("/add_user", addUser)
         http.HandleFunc("/submit_user", submitUser)
-        http.HandleFunc("/add", addMatchResult)
+        http.HandleFunc("/add_match_result", addMatchResult)
         http.HandleFunc("/submit_match_result", submitMatchResult)
         http.HandleFunc("/users", listUsers)
         http.HandleFunc("/latest_match", latestMatch)
@@ -98,42 +96,10 @@ func guestbookKey(c appengine.Context) *datastore.Key {
 var existLatestMatch = false
 var latestMatchToShow MatchToShow
 
-const addUserForm = `
-<html>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <head>
-    <title>Add a player</title>
-    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
-    <style>
-      body {
-          margin: 5;
-          text-align: center;
-      }
-      @font-face {
-          font-family: Tetrominoes;
-          src: url('/static/Tetrominoes.ttf');
-      }
-      h1 {
-        font-family: Tetrominoes;
-        font-weight: bold;
-      }
-    </style>
-  </head>
-  <body>
-    <h1>Add A Player</h1>
-    <h2>
-    <form action="/submit_user" method="post">
-      <p><textarea name="name" rows="1" cols="10"></textarea></p>
-      <button type="submit" class="btn-success">Confirm</button>
-    </form>
-    </h2>
-  </body>
-</html>
-`
 
-// [START add_match_result]
-func registerUser(w http.ResponseWriter, r *http.Request) {
-        fmt.Fprint(w, addUserForm)
+// [START add_user]
+func addUser(w http.ResponseWriter, r *http.Request) {
+        http.ServeFile(w, r, path.Join("static", "add_user.html"))
 }
 
 func existUser(c appengine.Context, name string) (bool, datastore.Key, UserProfile, error) {
@@ -199,7 +165,7 @@ func submitUser(w http.ResponseWriter, r *http.Request) {
 
 // [START add_match_result]
 func addMatchResult(w http.ResponseWriter, r *http.Request) {
-        http.ServeFile(w, r, path.Join("static", "add.html"))
+        http.ServeFile(w, r, path.Join("static", "add_match_result.html"))
 }
 
 // [START submit_match_result]
@@ -319,7 +285,7 @@ func submitMatchResult(w http.ResponseWriter, r *http.Request) {
                 Expected: oldRatingW >= oldRatingL,
         }
 
-        http.Redirect(w, r, "/add", http.StatusFound)
+        http.Redirect(w, r, "/add_match_result", http.StatusFound)
         // [END if_user]
 
 }
@@ -484,12 +450,12 @@ var guestbookTemplate = template.Must(template.New("book").Parse(`
     </table>
     </h2>
     <h2>
-    <form action="/register">
+    <form action="/add_user">
         <button type="submit" class="btn-success">Add a Player</button>
     </form>
     </h2>
     <h2>
-    <form action="/add">
+    <form action="/add_match_result">
         <button type="submit" class="btn-success">Add a Match Result</button>
     </form>
     </h2>

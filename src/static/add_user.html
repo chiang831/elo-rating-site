@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <title>Add a player</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+    <style>
+      body {
+          margin: 5;
+          text-align: center;
+      }
+      @font-face {
+          font-family: Tetrominoes;
+          src: url('/static/Tetrominoes.ttf');
+      }
+      h1 {
+        font-family: Tetrominoes;
+        font-weight: bold;
+      }
+    </style>
+  </head>
+  <body>
+    <form action="/submit_user" method="post">
+      <h1>Add A Player</h1>
+      <h2>
+      <form action="/submit_user" method="post">
+        <p><textarea name="name" rows="1" cols="10"></textarea></p>
+        <button type="submit" class="btn-success">Confirm</button>
+      </form>
+      </h2>
+    </form>
+  </body>
+</html>
