@@ -394,7 +394,7 @@ func root(w http.ResponseWriter, r *http.Request) {
                         results[j] = DetailMatchResultEntry {
                                 Wins: wins,
                                 Losses: losses,
-                                Color: getColor(wins, losses),
+                                Color: getColor(u, v, wins, losses),
                         }
                 }
 
@@ -646,8 +646,10 @@ func newElo(old_elo, expected, score float64) float64 {
 }
 
 // Get the color of win/lose/tie
-func getColor(wins, losses int) string {
-    if (wins == 0) && (losses == 0) {
+func getColor(u UserProfile, v UserProfile, wins int, losses int) string {
+    if u.Name == v.Name {
+        return "silver"
+    } else if (wins == 0) && (losses == 0) {
         return "white"
     } else if wins > losses {
         return "limegreen"
