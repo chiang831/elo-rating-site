@@ -2,7 +2,6 @@ package guestbook
 
 import (
         "encoding/json"
-        "html/template"
         "path"
         "log"
         "math"
@@ -68,6 +67,11 @@ type DetailMatchResult struct {
         Results     []DetailMatchResultEntry
 }
 
+type MatchData struct {
+        UserDataToShows []UserDataToShow
+        DetailMatchResults []DetailMatchResult
+}
+
 type RootPageVars struct {
         Greetings []Greeting
         MatchToShows []MatchToShow
@@ -84,6 +88,9 @@ func init() {
         http.HandleFunc("/submit_match_result", submitMatchResult)
         http.HandleFunc("/users", listUsers)
         http.HandleFunc("/latest_match", latestMatch)
+        http.HandleFunc("/request_match_data", requestMatchData)
+        http.HandleFunc("/request_greetings", requestGreetings)
+        http.HandleFunc("/request_matches", requestMatches)
         http.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.Dir("static"))))
 }
 
@@ -96,6 +103,10 @@ func guestbookKey(c appengine.Context) *datastore.Key {
 var existLatestMatch = false
 var latestMatchToShow MatchToShow
 
+// [START func_test_root]
+func root(w http.ResponseWriter, r *http.Request) {
+        http.ServeFile(w, r, path.Join("static", "main.html"))
+}
 
 // [START add_user]
 func addUser(w http.ResponseWriter, r *http.Request) {
@@ -290,241 +301,6 @@ func submitMatchResult(w http.ResponseWriter, r *http.Request) {
 
 }
 
-// [START func_root]
-func root(w http.ResponseWriter, r *http.Request) {
-        c := appengine.NewContext(r)
-        // Ancestor queries, as shown here, are strongly consistent with the High
-        // Replication Datastore. Queries that span entity groups are eventually
-        // consistent. If we omitted the .Ancestor from this query there would be
-        // a slight chance that Greeting that had just been written would not
-        // show up in a query.
-        // [START query]
-        queryGreeting := datastore.NewQuery("Greeting").Ancestor(guestbookKey(c)).Order("-Date").Limit(20)
-        // [END query]
-        // [START getall]
-        greetings := make([]Greeting, 0, 20)
-        if _, err := queryGreeting.GetAll(c, &greetings); err != nil {
-                http.Error(w, err.Error(), http.StatusInternalServerError)
-                return
-        }
-        // [END getall]
-
-        // [START query]
-        queryMatch := datastore.NewQuery("Match").Ancestor(guestbookKey(c)).Order("-Date").Limit(20)
-        // [END query]
-        // [START getall]
-        matches := make([]Match, 0, 20)
-        if _, err := queryMatch.GetAll(c, &matches); err != nil {
-                http.Error(w, err.Error(), http.StatusInternalServerError)
-                return
-        }
-        // [END getall]
-
-        // [START query]
-        queryUser := datastore.NewQuery("UserProfile").Ancestor(guestbookKey(c)).Order("-Rating")
-        // [END query]
-        // [START getall]
-        var users []UserProfile
-        if _, err := queryUser.GetAll(c, &users); err != nil {
-                http.Error(w, err.Error(), http.StatusInternalServerError)
-                return
-        }
-
-        // For each user, query number of wins and losses.
-        userDataToShows := make([]UserDataToShow, len(users))
-        detailMatchResults := make([]DetailMatchResult, len(users))
-        for i, u := range users {
-                results := make([]DetailMatchResultEntry, len(users))
-                oneUserTotalWin := 0
-                oneUserTotalLose := 0
-
-                for j, v := range users {
-                        queryOneUserWin := datastore.NewQuery("Match").Ancestor(guestbookKey(c)).Filter("Winner =", u.Name).Filter("Loser =", v.Name)
-                        var oneUserWin []Match
-                        if _, err := queryOneUserWin.GetAll(c, &oneUserWin); err != nil {
-                                http.Error(w, err.Error(), http.StatusInternalServerError)
-                                return
-                        }
-                        queryOneUserLoss := datastore.NewQuery("Match").Ancestor(guestbookKey(c)).Filter("Loser =", u.Name).Filter("Winner =", v.Name)
-                        var oneUserLoss []Match
-                        if _, err := queryOneUserLoss.GetAll(c, &oneUserLoss); err != nil {
-                                http.Error(w, err.Error(), http.StatusInternalServerError)
-                                return
-                        }
-
-                        wins := len(oneUserWin)
-                        losses := len(oneUserLoss)
-                        oneUserTotalWin += wins
-                        oneUserTotalLose += losses
-
-                        results[j] = DetailMatchResultEntry {
-                                Wins: wins,
-                                Losses: losses,
-                                Color: getColor(u, v, wins, losses),
-                        }
-                }
-
-                userDataToShows[i] = UserDataToShow {
-                        Name: u.Name,
-                        Rating: int(u.Rating),
-                        Wins: oneUserTotalWin,
-                        Losses: oneUserTotalLose,
-                }
-                detailMatchResults[i] = DetailMatchResult {
-                        Name: u.Name,
-                        Results: results,
-                }
-        }
-
-        matchToShows := make([]MatchToShow, len(matches))
-        for ind, m := range matches {
-                matchToShows[ind] = MatchToShow {
-                       Match: m,
-                       Expected: m.WinnerRatingBefore >= m.LoserRatingBefore,
-                }
-        }
-
-        // Fill in template.
-        vars := RootPageVars {
-                Greetings: greetings,
-                MatchToShows: matchToShows,
-                UserDataToShows: userDataToShows,
-                DetailMatchResults: detailMatchResults,
-        }
-
-        if err := guestbookTemplate.Execute(w, vars); err != nil {
-                http.Error(w, err.Error(), http.StatusInternalServerError)
-        }
-}
-// [END func_root]
-
-// Template for root page
-var guestbookTemplate = template.Must(template.New("book").Parse(`
-<html>
-  <head>
-    <title>ELO Rating</title>
-    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
-    <style>
-      body {
-          margin: 5;
-          text-align: center;
-      }
-      table, th, td {
-          border: 1px solid black;
-          border-collapse: collapse;
-      }
-      th, td {
-          padding: 5px;
-      }
-      th {
-          text-align: left;
-      }
-      @font-face {
-          font-family: Tetrominoes;
-          src: url('/static/Tetrominoes.ttf');
-      }
-      h1 {
-          font-family: Tetrominoes;
-          font-weight: bold;
-      }
-    </style>
-  </head>
-  <body>
-    <h1>Leaderboard</h1>
-    <h2>
-    <table style="width:40%;margin-left:auto;margin-right:auto">
-      <tr>
-        <th>Player</th>
-        <th><a href="https://en.wikipedia.org/wiki/Elo_rating_system">ELO Rating</a></th>
-        <th>Wins</th>
-        <th>Losses</th>
-      </tr>
-      {{range .UserDataToShows}}
-        <tr>
-          <td>{{.Name}}</td>
-          <td>{{.Rating}}</td>
-          <td>{{.Wins}}</td>
-          <td>{{.Losses}}</td>
-        </tr>
-      {{end}}
-    </table>
-    </h2>
-    <h2>
-    <form action="/add_user">
-        <button type="submit" class="btn-success">Add a Player</button>
-    </form>
-    </h2>
-    <h2>
-    <form action="/add_match_result">
-        <button type="submit" class="btn-success">Add a Match Result</button>
-    </form>
-    </h2>
-    <h1>Detail Results</h1>
-    <h2>
-    <table style="width:80%;margin-left:auto;margin-right:auto">
-      <tr>
-        <td></td>
-        {{range .DetailMatchResults}}
-          <td>{{.Name}}</td>
-        {{end}}
-      </tr>
-      {{range .DetailMatchResults}}
-        <tr>
-          <td>{{.Name}}</td>
-          {{range .Results}}
-            <td bgcolor={{.Color}}>{{.Wins}} / {{.Losses}}</td>
-          {{end}}
-        </tr>
-       {{end}}
-    </table>
-    </h2>
-    <h1>Recent Matches</h1>
-    {{range .MatchToShows}}
-      <p>
-      {{.Match.Date}}
-      {{with .Match.Submitter}}
-        {{.}} submitted:
-      {{else}}
-        An anonymous person submitted:
-      {{end}}
-      </p>
-      <h3>
-      {{.Match.Winner}} ({{.Match.WinnerRatingBefore}} &#x27a8; {{.Match.WinnerRatingAfter}})
-      {{with .Expected}}
-      &#9876;
-      {{else}}
-      &#x1F525;
-      {{end}}
-      {{.Match.Loser}} ({{.Match.LoserRatingBefore}} &#x27a8; {{.Match.LoserRatingAfter}})  {{.Match.Note}}
-      </h3>
-    {{end}}
-    <h1>Recent Comments</h1>
-    <form action="/sign" method="post">
-      <p><textarea name="content" rows="3" cols="60"></textarea></p>
-      <p>
-      <h2><button type="submit" class="btn-success">Add comment</button></h2>
-      </p>
-    </form>
-    {{range .Greetings}}
-      <p>
-      {{.Date}}
-      {{with .Author}}
-        <b>{{.}}</b> wrote:
-      {{else}}
-        An anonymous person wrote:
-      {{end}}
-      </p>
-      <h3>
-      {{.Content}}
-      </h3>
-    {{end}}
-  </body>
-  <foot>
-  Font credit: The FontStruction <a href="https://fontstruct.com/fontstructions/show/389448">Tetrominoes</a> by tp2-marriott
-  </foot>
-</html>
-`))
-
 // [START func_sign]
 func sign(w http.ResponseWriter, r *http.Request) {
         // [START new_context]
@@ -592,6 +368,120 @@ func latestMatch(w http.ResponseWriter, r *http.Request) {
         }
 
         js, err_js := json.Marshal(latestMatchToShow)
+        if err_js != nil {
+                http.Error(w, err_js.Error(), http.StatusInternalServerError)
+                return
+        }
+
+        w.Header().Set("Content-Type", "application/json")
+        w.Write(js)
+}
+
+func requestMatchData(w http.ResponseWriter, r *http.Request) {
+        c := appengine.NewContext(r)
+        queryUser := datastore.NewQuery("UserProfile").Ancestor(guestbookKey(c)).Order("Name")
+        var users []UserProfile
+        if _, err := queryUser.GetAll(c, &users); err != nil {
+                http.Error(w, err.Error(), http.StatusInternalServerError)
+                return
+        }
+        userDataToShows := make([]UserDataToShow, len(users))
+        detailMatchResults := make([]DetailMatchResult, len(users))
+        for i, u := range users {
+                results := make([]DetailMatchResultEntry, len(users))
+                oneUserTotalWin := 0
+                oneUserTotalLose := 0
+
+                for j, v := range users {
+                        queryOneUserWin := datastore.NewQuery("Match").Ancestor(guestbookKey(c)).Filter("Winner =", u.Name).Filter("Loser =", v.Name)
+                        var oneUserWin []Match
+                        if _, err := queryOneUserWin.GetAll(c, &oneUserWin); err != nil {
+                                http.Error(w, err.Error(), http.StatusInternalServerError)
+                                return
+                        }
+                        queryOneUserLoss := datastore.NewQuery("Match").Ancestor(guestbookKey(c)).Filter("Loser =", u.Name).Filter("Winner =", v.Name)
+                        var oneUserLoss []Match
+                        if _, err := queryOneUserLoss.GetAll(c, &oneUserLoss); err != nil {
+                                http.Error(w, err.Error(), http.StatusInternalServerError)
+                                return
+                        }
+
+                        wins := len(oneUserWin)
+                        losses := len(oneUserLoss)
+                        oneUserTotalWin += wins
+                        oneUserTotalLose += losses
+
+                        results[j] = DetailMatchResultEntry {
+                                Wins: wins,
+                                Losses: losses,
+                                Color: getColor(u, v, wins, losses),
+                        }
+                }
+
+                userDataToShows[i] = UserDataToShow {
+                        Name: u.Name,
+                        Rating: int(u.Rating),
+                        Wins: oneUserTotalWin,
+                        Losses: oneUserTotalLose,
+                }
+                detailMatchResults[i] = DetailMatchResult {
+                        Name: u.Name,
+                        Results: results,
+                }
+        }
+
+        matchData := MatchData {
+                UserDataToShows: userDataToShows,
+                DetailMatchResults: detailMatchResults,
+        }
+
+        js, err_js := json.Marshal(matchData)
+        if err_js != nil {
+                http.Error(w, err_js.Error(), http.StatusInternalServerError)
+                return
+        }
+
+        w.Header().Set("Content-Type", "application/json")
+        w.Write(js)
+}
+
+func requestGreetings(w http.ResponseWriter, r *http.Request) {
+        c := appengine.NewContext(r)
+        queryGreeting := datastore.NewQuery("Greeting").Ancestor(guestbookKey(c)).Order("-Date").Limit(20)
+        greetings := make([]Greeting, 0, 20)
+        if _, err := queryGreeting.GetAll(c, &greetings); err != nil {
+                http.Error(w, err.Error(), http.StatusInternalServerError)
+                return
+        }
+
+        js, err_js := json.Marshal(greetings)
+        if err_js != nil {
+                http.Error(w, err_js.Error(), http.StatusInternalServerError)
+                return
+        }
+
+        w.Header().Set("Content-Type", "application/json")
+        w.Write(js)
+}
+
+func requestMatches(w http.ResponseWriter, r *http.Request) {
+        c := appengine.NewContext(r)
+        queryMatch := datastore.NewQuery("Match").Ancestor(guestbookKey(c)).Order("-Date").Limit(20)
+        matches := make([]Match, 0, 20)
+        if _, err := queryMatch.GetAll(c, &matches); err != nil {
+                http.Error(w, err.Error(), http.StatusInternalServerError)
+                return
+        }
+
+        matchToShows := make([]MatchToShow, len(matches))
+        for i, m := range matches {
+                matchToShows[i] = MatchToShow {
+                        Match: m,
+                        Expected: m.WinnerRatingBefore >= m.LoserRatingBefore,
+                }
+        }
+
+        js, err_js := json.Marshal(matchToShows)
         if err_js != nil {
                 http.Error(w, err_js.Error(), http.StatusInternalServerError)
                 return

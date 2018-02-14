@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>ELO Rating</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+    <style>
+      body {
+          margin: 5;
+          text-align: center;
+      }
+      table, th, td {
+          border: 1px solid black;
+          border-collapse: collapse;
+      }
+      th, td {
+          padding: 5px;
+          text-align: center;
+      }
+      @font-face {
+          font-family: Tetrominoes;
+          src: url('/static/Tetrominoes.ttf');
+      }
+      h1 {
+          font-family: Tetrominoes;
+          font-weight: bold;
+      }
+      .Match {
+          display: inline-block;
+          padding: 5px 10px;
+          border: 1px solid black;
+          border-radius: 10px;
+          background-color: ivory;
+          margin-bottom: 10px;
+      }
+      .Match h3 {
+          margin-top: 2px;
+          margin-bottom: 2px;
+      }
+      .Greeting {
+          display: inline-block;
+          padding: 5px 10px;
+          border: 1px solid black;
+          border-radius: 10px;
+          background-color: azure;
+          margin-bottom: 10px;
+      }
+      .Greeting h3 {
+          margin-top: 5px;
+          margin-bottom: 5px;
+      }
+    </style>
+  </head>
+  <body onload="onLoad()">
+    <h1>Leaderboard</h1>
+    <table id="leaderboard" style="width:40%;margin-left:auto;margin-right:auto">
+    </table>
+    <h2>
+    <form action="/add_user">
+        <button type="submit" class="btn-success">Add a Player</button>
+    </form>
+    </h2>
+    <h2>
+    <form action="/add_match_result">
+        <button type="submit" class="btn-success">Add a Match Result</button>
+    </form>
+    </h2>
+    <h1>Detail Results</h1>
+    <table id="detail_result" style="width:80%;margin-left:auto;margin-right:auto">
+    </table>
+    <h1>Recent Matches</h1>
+    <div id="matches"></div>
+    <h1>Recent Comments</h1>
+    <form action="/sign" method="post">
+      <p><textarea name="content" rows="3" cols="60"></textarea></p>
+      <p>
+      <h2><button type="submit" class="btn-success">Add comment</button></h2>
+      </p>
+    </form>
+    <div id="greetings">
+    <script src="/static/js/main.js"></script>
+  </body>
+  <foot>
+  Font credit: The FontStruction <a href="https://fontstruct.com/fontstructions/show/389448">Tetrominoes</a> by tp2-marriott
+  </foot>
+</html>
