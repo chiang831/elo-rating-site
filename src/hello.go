@@ -59,10 +59,22 @@ type MatchToShow struct {
         Expected    bool //Use this to show different icon for underdog.
 }
 
+type DetailMatchResultEntry struct {
+        Wins        int
+        Losses      int
+        Color       string
+}
+
+type DetailMatchResult struct {
+        Name        string
+        Results     []DetailMatchResultEntry
+}
+
 type RootPageVars struct {
         Greetings []Greeting
         MatchToShows []MatchToShow
         UserDataToShows []UserDataToShow
+        DetailMatchResults []DetailMatchResult
 }
 
 func init() {
@@ -304,7 +316,7 @@ func submitMatchResult(w http.ResponseWriter, r *http.Request) {
         existLatestMatch = true;
         latestMatchToShow = MatchToShow {
                 Match: g,
-		Expected: oldRatingW >= oldRatingL,
+                Expected: oldRatingW >= oldRatingL,
         }
 
         http.Redirect(w, r, "/add", http.StatusFound)
@@ -354,41 +366,64 @@ func root(w http.ResponseWriter, r *http.Request) {
 
         // For each user, query number of wins and losses.
         userDataToShows := make([]UserDataToShow, len(users))
+        detailMatchResults := make([]DetailMatchResult, len(users))
         for i, u := range users {
-                 queryOneUserWin := datastore.NewQuery("Match").Ancestor(guestbookKey(c)).Filter("Winner =", u.Name)
-                 var oneUserWin []Match
-                 if _, err := queryOneUserWin.GetAll(c, &oneUserWin); err != nil {
-                        http.Error(w, err.Error(), http.StatusInternalServerError)
-                        return
-                 }
-                 queryOneUserLoss := datastore.NewQuery("Match").Ancestor(guestbookKey(c)).Filter("Loser =", u.Name)
-                 var oneUserLoss []Match
-                 if _, err := queryOneUserLoss.GetAll(c, &oneUserLoss); err != nil {
-                        http.Error(w, err.Error(), http.StatusInternalServerError)
-                        return
-                 }
+                results := make([]DetailMatchResultEntry, len(users))
+                oneUserTotalWin := 0
+                oneUserTotalLose := 0
 
-                 userDataToShows[i] = UserDataToShow {
-                         Name: u.Name,
-                         Rating: int(u.Rating),
-                         Wins: len(oneUserWin),
-                         Losses: len(oneUserLoss),
-                 }
+                for j, v := range users {
+                        queryOneUserWin := datastore.NewQuery("Match").Ancestor(guestbookKey(c)).Filter("Winner =", u.Name).Filter("Loser =", v.Name)
+                        var oneUserWin []Match
+                        if _, err := queryOneUserWin.GetAll(c, &oneUserWin); err != nil {
+                                http.Error(w, err.Error(), http.StatusInternalServerError)
+                                return
+                        }
+                        queryOneUserLoss := datastore.NewQuery("Match").Ancestor(guestbookKey(c)).Filter("Loser =", u.Name).Filter("Winner =", v.Name)
+                        var oneUserLoss []Match
+                        if _, err := queryOneUserLoss.GetAll(c, &oneUserLoss); err != nil {
+                                http.Error(w, err.Error(), http.StatusInternalServerError)
+                                return
+                        }
+
+                        wins := len(oneUserWin)
+                        losses := len(oneUserLoss)
+                        oneUserTotalWin += wins
+                        oneUserTotalLose += losses
+
+                        results[j] = DetailMatchResultEntry {
+                                Wins: wins,
+                                Losses: losses,
+                                Color: getColor(wins, losses),
+                        }
+                }
+
+                userDataToShows[i] = UserDataToShow {
+                        Name: u.Name,
+                        Rating: int(u.Rating),
+                        Wins: oneUserTotalWin,
+                        Losses: oneUserTotalLose,
+                }
+                detailMatchResults[i] = DetailMatchResult {
+                        Name: u.Name,
+                        Results: results,
+                }
         }
 
-	matchToShows := make([]MatchToShow, len(matches))
-	for ind, m := range matches {
+        matchToShows := make([]MatchToShow, len(matches))
+        for ind, m := range matches {
                 matchToShows[ind] = MatchToShow {
                        Match: m,
-		       Expected: m.WinnerRatingBefore >= m.LoserRatingBefore,
-	        }
-	}
+                       Expected: m.WinnerRatingBefore >= m.LoserRatingBefore,
+                }
+        }
 
         // Fill in template.
         vars := RootPageVars {
                 Greetings: greetings,
                 MatchToShows: matchToShows,
                 UserDataToShows: userDataToShows,
+                DetailMatchResults: detailMatchResults,
         }
 
         if err := guestbookTemplate.Execute(w, vars); err != nil {
@@ -424,7 +459,7 @@ var guestbookTemplate = template.Must(template.New("book").Parse(`
       }
       h1 {
           font-family: Tetrominoes;
-	  font-weight: bold;
+          font-weight: bold;
       }
     </style>
   </head>
@@ -457,6 +492,25 @@ var guestbookTemplate = template.Must(template.New("book").Parse(`
     <form action="/add">
         <button type="submit" class="btn-success">Add a Match Result</button>
     </form>
+    </h2>
+    <h1>Detail Results</h1>
+    <h2>
+    <table style="width:80%;margin-left:auto;margin-right:auto">
+      <tr>
+        <td></td>
+        {{range .DetailMatchResults}}
+          <td>{{.Name}}</td>
+        {{end}}
+      </tr>
+      {{range .DetailMatchResults}}
+        <tr>
+          <td>{{.Name}}</td>
+          {{range .Results}}
+            <td bgcolor={{.Color}}>{{.Wins}} / {{.Losses}}</td>
+          {{end}}
+        </tr>
+       {{end}}
+    </table>
     </h2>
     <h1>Recent Matches</h1>
     {{range .MatchToShows}}
@@ -560,12 +614,12 @@ func listUsers(w http.ResponseWriter, r *http.Request) {
 }
 
 func latestMatch(w http.ResponseWriter, r *http.Request) {
-	if !existLatestMatch {
+        if !existLatestMatch {
                 nil_js, nil_err_js := json.Marshal(nil)
                 if nil_err_js != nil {
                         http.Error(w, nil_err_js.Error(), http.StatusInternalServerError)
-			return
-		}
+                        return
+                }
                 w.Header().Set("Content-Type", "application/json")
                 w.Write(nil_js)
                 return
@@ -589,4 +643,15 @@ func expectedScore(elo_a, elo_b float64) float64{
 // Get the new Elo rating.
 func newElo(old_elo, expected, score float64) float64 {
     return old_elo + 32.0 * (score - expected)
+}
+
+// Get the color of win/lose/tie
+func getColor(wins, losses int) string {
+    if wins > losses {
+        return "lime"
+    } else if wins < losses {
+        return "tomato"
+    } else {
+        return "yellow"
+    }
 }
