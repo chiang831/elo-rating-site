@@ -122,6 +122,17 @@ function fillInGreetings(r) {
   greetings_div.innerHTML = content;
 }
 
+function show_hide(id) {
+  var target = document.getElementById(id);
+  if (target) {
+    if (target.style.display == "block") {
+      target.style.display = "none";
+    } else {
+      target.style.display = "block";
+    }
+  }
+}
+
 // Remove everything after '@'
 function getName(name) {
   var idx = name.indexOf("@");

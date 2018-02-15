@@ -51,32 +51,34 @@
     </style>
   </head>
   <body onload="onLoad()">
-    <h1>Leaderboard</h1>
-    <table id="leaderboard" style="width:40%;margin-left:auto;margin-right:auto">
-    </table>
-    <h2>
-    <form action="/add_user">
-        <button type="submit" class="btn-success">Add a Player</button>
-    </form>
-    </h2>
-    <h2>
-    <form action="/add_match_result">
+    <h2><form action="/add_user">
+      <button type="submit" class="btn-success">Add a Player</button>
+    </form></h2>
+    <h2><form action="/add_match_result">
         <button type="submit" class="btn-success">Add a Match Result</button>
-    </form>
-    </h2>
-    <h1>Detail Results</h1>
-    <table id="detail_result" style="width:80%;margin-left:auto;margin-right:auto">
-    </table>
-    <h1>Recent Matches</h1>
-    <div id="matches"></div>
-    <h1>Recent Comments</h1>
-    <form action="/sign" method="post">
-      <p><textarea name="content" rows="3" cols="60"></textarea></p>
-      <p>
-      <h2><button type="submit" class="btn-success">Add comment</button></h2>
-      </p>
-    </form>
-    <div id="greetings">
+    </form></h2>
+    <div onclick="show_hide('show_leaderboard')"><h1>Leaderboard</h1></div>
+    <div id="show_leaderboard" style="display:block">
+      <table id="leaderboard" style="width:40%;margin-left:auto;margin-right:auto"></table>
+    </div>
+    <div onclick="show_hide('show_detail_results')"><h1>Detail Results</h1></div>
+    <div id="show_detail_results" style="display:block">
+      <table id="detail_result" style="width:80%;margin-left:auto;margin-right:auto"></table>
+    </div>
+    <div onclick="show_hide('show_matches')"><h1>Recent Matches</h1></div>
+    <div id="show_matches" style="display:block">
+      <div id="matches"></div>
+    </div>
+    <div onclick="show_hide('show_greetings')"><h1>Recent Comments</h1></div>
+    <div id="show_greetings" style="display:block">
+      <form action="/sign" method="post">
+        <p><textarea name="content" rows="3" cols="60"></textarea></p>
+        <p>
+        <h2><button type="submit" class="btn-success">Add comment</button></h2>
+        </p>
+      </form>
+      <div id="greetings"></div>
+    </div>
     <script src="/static/js/main.js"></script>
   </body>
   <foot>
