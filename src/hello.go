@@ -27,21 +27,6 @@ type Match struct {
         Submitter  string
         Winner     string
         Loser      string
-        WinnerRatingBefore int // Just for showing the history. Int is enough.
-        WinnerRatingAfter int // Just for showing the history. Int is enough.
-        LoserRatingBefore int // Just for showing the history. Int is enough.
-        LoserRatingAfter int // Just for showing the history. Int is enough.
-        Note       string
-        Date       time.Time
-}
-// [END match_struct]
-
-// [START match_tmp_struct]
-type Match_tmp struct {
-        Tournament string
-        Submitter  string
-        Winner     string
-        Loser      string
         WinnerRatingBefore float64
         WinnerRatingAfter float64
         LoserRatingBefore float64
@@ -49,7 +34,7 @@ type Match_tmp struct {
         Note       string
         Date       time.Time
 }
-// [END match_tmp_struct]
+// [END match_struct]
 
 // [START user_profile]
 type UserProfile struct {
@@ -106,7 +91,6 @@ func init() {
         http.HandleFunc("/request_match_data", requestMatchData)
         http.HandleFunc("/request_greetings", requestGreetings)
         http.HandleFunc("/request_matches", requestMatches)
-        http.HandleFunc("/subs", substituteMatches)
         http.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.Dir("static"))))
 }
 
@@ -257,12 +241,12 @@ func submitMatchResult(w http.ResponseWriter, r *http.Request) {
                 Tournament: "Default",
                 Winner: winner_name,
                 Loser: loser_name,
-                WinnerRatingBefore: int(oldRatingW),
-                WinnerRatingAfter: int(newRatingW),
-                LoserRatingBefore: int(oldRatingL),
-                LoserRatingAfter: int(newRatingL),
+                WinnerRatingBefore: oldRatingW,
+                WinnerRatingAfter: newRatingW,
+                LoserRatingBefore: oldRatingL,
+                LoserRatingAfter: newRatingL,
                 Note: r.FormValue("note"),
-                Date:    time.Now(),
+                Date: time.Now(),
         }
 
         // [START if_user]
@@ -530,30 +514,4 @@ func getColor(u UserProfile, v UserProfile, wins int, losses int) string {
     } else {
         return "yellow"
     }
-}
-
-func substituteMatches(w http.ResponseWriter, r *http.Request) {
-        c := appengine.NewContext(r)
-        queryMatch := datastore.NewQuery("Match").Ancestor(guestbookKey(c))
-        var matches []Match
-        keys, err := queryMatch.GetAll(c, &matches)
-        if err != nil {
-                http.Error(w, err.Error(), http.StatusInternalServerError)
-                return
-        }
-        for i, m := range matches {
-                match_tmp := Match_tmp {
-                        Tournament: m.Tournament,
-                        Submitter: m.Submitter,
-                        Winner: m.Winner,
-                        Loser: m.Loser,
-                        WinnerRatingBefore: float64(m.WinnerRatingBefore),
-                        WinnerRatingAfter: float64(m.WinnerRatingAfter),
-                        LoserRatingBefore: float64(m.LoserRatingBefore),
-                        LoserRatingAfter: float64(m.LoserRatingAfter),
-                        Note: m.Note,
-                        Date: m.Date,
-                }
-                datastore.Put(c, keys[i], &match_tmp)
-        }
 }
