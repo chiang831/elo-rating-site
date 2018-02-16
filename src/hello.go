@@ -36,6 +36,21 @@ type Match struct {
 }
 // [END match_struct]
 
+// [START match_tmp_struct]
+type Match_tmp struct {
+        Tournament string
+        Submitter  string
+        Winner     string
+        Loser      string
+        WinnerRatingBefore float64
+        WinnerRatingAfter float64
+        LoserRatingBefore float64
+        LoserRatingAfter float64
+        Note       string
+        Date       time.Time
+}
+// [END match_tmp_struct]
+
 // [START user_profile]
 type UserProfile struct {
         Tournament string
@@ -91,6 +106,7 @@ func init() {
         http.HandleFunc("/request_match_data", requestMatchData)
         http.HandleFunc("/request_greetings", requestGreetings)
         http.HandleFunc("/request_matches", requestMatches)
+        http.HandleFunc("/subs", substituteMatches)
         http.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.Dir("static"))))
 }
 
@@ -514,4 +530,30 @@ func getColor(u UserProfile, v UserProfile, wins int, losses int) string {
     } else {
         return "yellow"
     }
+}
+
+func substituteMatches(w http.ResponseWriter, r *http.Request) {
+        c := appengine.NewContext(r)
+        queryMatch := datastore.NewQuery("Match").Ancestor(guestbookKey(c))
+        var matches []Match
+        keys, err := queryMatch.GetAll(c, &matches)
+        if err != nil {
+                http.Error(w, err.Error(), http.StatusInternalServerError)
+                return
+        }
+        for i, m := range matches {
+                match_tmp := Match_tmp {
+                        Tournament: m.Tournament,
+                        Submitter: m.Submitter,
+                        Winner: m.Winner,
+                        Loser: m.Loser,
+                        WinnerRatingBefore: float64(m.WinnerRatingBefore),
+                        WinnerRatingAfter: float64(m.WinnerRatingAfter),
+                        LoserRatingBefore: float64(m.LoserRatingBefore),
+                        LoserRatingAfter: float64(m.LoserRatingAfter),
+                        Note: m.Note,
+                        Date: m.Date,
+                }
+                datastore.Put(c, keys[i], &match_tmp)
+        }
 }
