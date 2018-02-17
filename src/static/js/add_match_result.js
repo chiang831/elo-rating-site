@@ -80,7 +80,7 @@ function fillInMessage(r) {
   if (lm != null ) {
     var message_div = document.getElementById("message");
     var message = "Latest match:<br>";
-    message += lm.Match.Winner + " (" + lm.Match.WinnerRatingBefore + " &#x27a8; " + lm.Match.WinnerRatingAfter + ") ";
+    message += lm.Match.Winner + " (" + Math.round(lm.Match.WinnerRatingBefore) + " &#x27a8; " + Math.round(lm.Match.WinnerRatingAfter) + ") ";
     message += "<br>";
     if (lm.Expected) {
         message += " &#9876; ";
@@ -88,7 +88,7 @@ function fillInMessage(r) {
         message += " &#x1F525; ";
     }
     message += "<br>";
-    message += lm.Match.Loser + " (" + lm.Match.LoserRatingBefore + " &#x27a8; " + lm.Match.LoserRatingAfter + ") ";
+    message += lm.Match.Loser + " (" + Math.round(lm.Match.LoserRatingBefore) + " &#x27a8; " + Math.round(lm.Match.LoserRatingAfter) + ") ";
     console.log("message = " + message);
 
     message_div.innerHTML = message;
