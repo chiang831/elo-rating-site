@@ -393,21 +393,21 @@ func requestMatchData(w http.ResponseWriter, r *http.Request) {
                 oneUserTotalLose := 0
 
                 for j, v := range users {
-                        queryOneUserWin := datastore.NewQuery("Match").Ancestor(guestbookKey(c)).Filter("Winner =", u.Name).Filter("Loser =", v.Name)
-                        var oneUserWin []Match
-                        if _, err := queryOneUserWin.GetAll(c, &oneUserWin); err != nil {
+                        queryOneUserWin := datastore.NewQuery("Match").Ancestor(guestbookKey(c)).Filter("Winner =", u.Name).Filter("Loser =", v.Name).KeysOnly()
+                        keyWin, err := queryOneUserWin.GetAll(c, nil)
+                        if err != nil {
                                 http.Error(w, err.Error(), http.StatusInternalServerError)
                                 return
                         }
-                        queryOneUserLoss := datastore.NewQuery("Match").Ancestor(guestbookKey(c)).Filter("Loser =", u.Name).Filter("Winner =", v.Name)
-                        var oneUserLoss []Match
-                        if _, err := queryOneUserLoss.GetAll(c, &oneUserLoss); err != nil {
+                        queryOneUserLoss := datastore.NewQuery("Match").Ancestor(guestbookKey(c)).Filter("Loser =", u.Name).Filter("Winner =", v.Name).KeysOnly()
+                        keyLoss, err := queryOneUserLoss.GetAll(c, nil)
+                        if err != nil {
                                 http.Error(w, err.Error(), http.StatusInternalServerError)
                                 return
                         }
 
-                        wins := len(oneUserWin)
-                        losses := len(oneUserLoss)
+                        wins := len(keyWin)
+                        losses := len(keyLoss)
                         oneUserTotalWin += wins
                         oneUserTotalLose += losses
 
