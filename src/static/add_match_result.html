@@ -19,6 +19,18 @@
     font-family: Tetrominoes;
     font-weight: bold;
   }
+  .Prob{
+    display: inline-block;
+    padding: 5px 10px;
+    border: 1px solid black;
+    border-radius: 10px;
+    background-color: ivory;
+    margin-bottom: 10px;
+  }
+  .ProbNumber {
+    font-weight: bold;
+    color: LightCoral;
+  }
 </style>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width">
@@ -29,13 +41,16 @@
     <h1>Add a Match Result</h1>
     <div id="winner_select" class="container-fluid" style="width:50%; text-align:left">
       <h2 class="page-header">Winner</h2>
-      <v-select ref="vselect" v-model="selected" :options="names"></v-select>
+      <h3 id="winner_rating"></h3>
+      <v-select ref="vselect" v-model="selected" :options="names" :on-change="selectedChanged"></v-select>
       <textarea name="winner" style="display:none">{{selected}}</textarea>
     </div>
+    <h3 class="Prob">Expected Win Probability: <span class="ProbNumber" id=exp_win_prob></span></h3>
     <h3><button type="button" onclick="switchSelected()" class="btn-success">Switch</button></h3>
     <div id="loser_select" class="container-fluid" style="width:50%; text-align:left">
       <h2 class="page-header">Loser</h2>
-      <v-select ref="vselect" v-model="selected" :options="names"></v-select>
+      <h3 id="loser_rating"></h3>
+      <v-select ref="vselect" v-model="selected" :options="names" :on-change="selectedChanged"></v-select>
       <textarea name="loser" style="display:none">{{selected}}</textarea>
     </div>
     <div>
