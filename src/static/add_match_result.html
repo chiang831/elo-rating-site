@@ -39,7 +39,7 @@
   <h4><div class="alert alert-success", id="message", style="display:none"></div></h4>
   <form action="/submit_match_result" method="post">
     <h1>Add a Match Result</h1>
-    <div id="winner_select" class="container-fluid" style="width:50%; text-align:left">
+    <div id="winner_select" class="container-fluid" style="width:80%; text-align:left">
       <h2 class="page-header">Winner</h2>
       <h3 id="winner_rating"></h3>
       <v-select ref="vselect" v-model="selected" :options="names" :on-change="selectedChanged"></v-select>
@@ -47,7 +47,7 @@
     </div>
     <h3 class="Prob">Expected Win Probability: <span class="ProbNumber" id=exp_win_prob></span></h3>
     <h3><button type="button" onclick="switchSelected()" class="btn-success">Switch</button></h3>
-    <div id="loser_select" class="container-fluid" style="width:50%; text-align:left">
+    <div id="loser_select" class="container-fluid" style="width:80%; text-align:left">
       <h2 class="page-header">Loser</h2>
       <h3 id="loser_rating"></h3>
       <v-select ref="vselect" v-model="selected" :options="names" :on-change="selectedChanged"></v-select>
@@ -55,7 +55,7 @@
     </div>
     <div>
       <h2>Result / Note
-      <p><textarea name="note" rows="5" cols="30"></textarea></p>
+      <p><textarea name="note" rows="5" cols="20"></textarea></p>
       </h2>
     </div>
     <h2>
