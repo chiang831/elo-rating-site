@@ -3,8 +3,6 @@ package guestbook
 import (
         "encoding/json"
         "path"
-        "log"
-        "math"
         "net/http"
         "regexp"
         "time"
@@ -12,72 +10,6 @@ import (
         "appengine/datastore"
         "appengine/user"
 )
-
-// [START greeting_struct]
-type Greeting struct {
-        Author  string
-        Content string
-        Date    time.Time
-}
-// [END greeting_struct]
-
-// [START match_struct]
-type Match struct {
-        Tournament string
-        Submitter  string
-        Winner     string
-        Loser      string
-        WinnerRatingBefore float64
-        WinnerRatingAfter float64
-        LoserRatingBefore float64
-        LoserRatingAfter float64
-        Note       string
-        Date       time.Time
-}
-// [END match_struct]
-
-// [START user_profile]
-type UserProfile struct {
-        Tournament string
-        Name       string
-        Rating     float64
-        JoinDate   time.Time
-}
-
-type UserDataToShow struct {
-        Name        string
-        Rating      int
-        Wins        int
-        Losses      int
-}
-
-type MatchToShow struct {
-        Match       Match
-        Expected    bool //Use this to show different icon for underdog.
-}
-
-type DetailMatchResultEntry struct {
-        Wins        int
-        Losses      int
-        Color       string
-}
-
-type DetailMatchResult struct {
-        Name        string
-        Results     []DetailMatchResultEntry
-}
-
-type MatchData struct {
-        UserDataToShows []UserDataToShow
-        DetailMatchResults []DetailMatchResult
-}
-
-type RootPageVars struct {
-        Greetings []Greeting
-        MatchToShows []MatchToShow
-        UserDataToShows []UserDataToShow
-        DetailMatchResults []DetailMatchResult
-}
 
 func init() {
         http.HandleFunc("/", root)
@@ -87,7 +19,7 @@ func init() {
         http.HandleFunc("/add_match_result", addMatchResult)
         http.HandleFunc("/submit_match_result", submitMatchResult)
         http.HandleFunc("/users", listUsers)
-        http.HandleFunc("/latest_match", latestMatch)
+        http.HandleFunc("/latest_match", requestLatestMatch)
         http.HandleFunc("/request_match_data", requestMatchData)
         http.HandleFunc("/request_greetings", requestGreetings)
         http.HandleFunc("/request_matches", requestMatches)
@@ -101,7 +33,7 @@ func guestbookKey(c appengine.Context) *datastore.Key {
 }
 
 var existLatestMatch = false
-var latestMatchToShow MatchToShow
+var latestMatch Match
 
 // [START func_test_root]
 func root(w http.ResponseWriter, r *http.Request) {
@@ -179,127 +111,6 @@ func addMatchResult(w http.ResponseWriter, r *http.Request) {
         http.ServeFile(w, r, path.Join("static", "add_match_result.html"))
 }
 
-// [START submit_match_result]
-func submitMatchResult(w http.ResponseWriter, r *http.Request) {
-        // [START new_context]
-        c := appengine.NewContext(r)
-        // [END new_context]
-
-        keyWinner := datastore.Key{}
-        keyLoser:= datastore.Key{}
-        winner := UserProfile{}
-        loser := UserProfile{}
-        exist := false
-        var err error
-
-        winner_name := r.FormValue("winner")
-        loser_name := r.FormValue("loser")
-
-        log.Printf("winner_name: %s", winner_name)
-        log.Printf("loser_name: %s", loser_name)
-
-        if winner_name == loser_name {
-                http.Error(w, "Winner should not be the same as loser.",
-                           http.StatusBadRequest)
-        }
-
-        // Check winner is registered.
-        exist, keyWinner, winner, err = existUser(c, winner_name)
-        if err != nil {
-                http.Error(w, err.Error(), http.StatusInternalServerError)
-                return
-        }
-
-        if !exist {
-                http.Error(w, "Winner has not registered", http.StatusBadRequest)
-                return
-        }
-
-        // Check loser is registered.
-        exist, keyLoser, loser, err = existUser(c, loser_name)
-        if err != nil {
-                http.Error(w, err.Error(), http.StatusInternalServerError)
-                return
-        }
-
-        if !exist {
-                http.Error(w, "Loser has not registered", http.StatusBadRequest)
-                return
-        }
-
-        oldRatingW := winner.Rating
-        oldRatingL := loser.Rating
-
-        //Get new ELO value
-        expectedScoreW := expectedScore(winner.Rating, loser.Rating)
-        newRatingW := newElo(winner.Rating, expectedScoreW, 1.0)
-
-        expectedScoreL := expectedScore(loser.Rating, winner.Rating)
-        newRatingL := newElo(loser.Rating, expectedScoreL, 0.0)
-
-        g := Match{
-                Tournament: "Default",
-                Winner: winner_name,
-                Loser: loser_name,
-                WinnerRatingBefore: oldRatingW,
-                WinnerRatingAfter: newRatingW,
-                LoserRatingBefore: oldRatingL,
-                LoserRatingAfter: newRatingL,
-                Note: r.FormValue("note"),
-                Date: time.Now(),
-        }
-
-        // [START if_user]
-        if u := user.Current(c); u != nil {
-                g.Submitter= u.String()
-        }
-
-        key := datastore.NewIncompleteKey(c, "Match", guestbookKey(c))
-
-        keyMatch := &datastore.Key{}
-        keyMatch, err = datastore.Put(c, key, &g)
-        if err != nil {
-                http.Error(w, err.Error(), http.StatusInternalServerError)
-                return
-        }
-
-        winner.Rating = newRatingW
-        loser.Rating = newRatingL
-
-        // Try to update winner rating.
-        _, err = datastore.Put(c, &keyWinner, &winner)
-        if err != nil {
-                // Remove match entity as best-effort fallback.
-                datastore.Delete(c, keyMatch)
-
-                http.Error(w, err.Error(), http.StatusInternalServerError)
-                return
-        }
-
-        // Try to update loser rating.
-        _, err = datastore.Put(c, &keyLoser, &loser)
-        if err != nil {
-                // Remove match entity as best-effort fallback.
-                datastore.Delete(c, keyMatch)
-                // Change winner rating back.
-                winner.Rating = oldRatingW
-                datastore.Put(c, &keyWinner, &winner)
-
-                http.Error(w, err.Error(), http.StatusInternalServerError)
-                return
-        }
-
-
-        existLatestMatch = true;
-        latestMatchToShow = MatchToShow {
-                Match: g,
-                Expected: oldRatingW >= oldRatingL,
-        }
-
-        http.Redirect(w, r, "/add_match_result", http.StatusFound)
-        // [END if_user]
-
-}
 
 // [START func_sign]
 func sign(w http.ResponseWriter, r *http.Request) {
@@ -355,7 +166,7 @@ func listUsers(w http.ResponseWriter, r *http.Request) {
         w.Write(js)
 }
 
-func latestMatch(w http.ResponseWriter, r *http.Request) {
+func requestLatestMatch(w http.ResponseWriter, r *http.Request) {
         if !existLatestMatch {
                 nil_js, nil_err_js := json.Marshal(nil)
                 if nil_err_js != nil {
@@ -367,7 +178,7 @@ func latestMatch(w http.ResponseWriter, r *http.Request) {
                 return
         }
 
-        js, err_js := json.Marshal(latestMatchToShow)
+        js, err_js := json.Marshal(latestMatch)
         if err_js != nil {
                 http.Error(w, err_js.Error(), http.StatusInternalServerError)
                 return
@@ -473,15 +284,7 @@ func requestMatches(w http.ResponseWriter, r *http.Request) {
                 return
         }
 
-        matchToShows := make([]MatchToShow, len(matches))
-        for i, m := range matches {
-                matchToShows[i] = MatchToShow {
-                        Match: m,
-                        Expected: m.WinnerRatingBefore >= m.LoserRatingBefore,
-                }
-        }
-
-        js, err_js := json.Marshal(matchToShows)
+        js, err_js := json.Marshal(matches)
         if err_js != nil {
                 http.Error(w, err_js.Error(), http.StatusInternalServerError)
                 return
@@ -489,16 +292,6 @@ func requestMatches(w http.ResponseWriter, r *http.Request) {
 
         w.Header().Set("Content-Type", "application/json")
         w.Write(js)
-}
-
-// Expected score of elo_a in a match against elo_b
-func expectedScore(elo_a, elo_b float64) float64{
-    return 1 / (1 + math.Pow(10, (elo_b - elo_a) / 400))
-}
-
-// Get the new Elo rating.
-func newElo(old_elo, expected, score float64) float64 {
-    return old_elo + 32.0 * (score - expected)
 }
 
 // Get the color of win/lose/tie

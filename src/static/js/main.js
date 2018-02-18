@@ -85,20 +85,19 @@ function fillInDetailMatchResult(results) {
 }
 
 function fillInMatches(r) {
-  var matchToShows = JSON.parse(r);
+  var matches = JSON.parse(r);
   var matches_div = document.getElementById("matches");
   var content = "";
-  for (var i in matchToShows) {
-    expected = matchToShows[i].Expected;
-    match = matchToShows[i].Match;
+  for (var i in matches) {
+    match = matches[i];
     var result = "<h3>" +
-                 match.Winner + " (" + match.WinnerRatingBefore +
+                 match.Winner + " (" + Math.round(match.WinnerRatingBefore) +
                  " <font color=\"green\">&#x27a8;</font> " + 
-                 match.WinnerRatingAfter + ") " +
-                 (expected? " &#9876; " : " &#x1F525; ") +
-                 match.Loser + " (" + match.LoserRatingBefore +
+                 Math.round(match.WinnerRatingAfter) + ") " +
+                 (match.Expected? " &#9876; " : " &#x1F525; ") +
+                 match.Loser + " (" + Math.round(match.LoserRatingBefore) +
                  " <font color=\"red\">&#x27a8;</font> " +
-                 match.LoserRatingAfter + ") " +
+                 Math.round(match.LoserRatingAfter) + ") " +
                  match.Note + "</h3>";
     var log = "( Submitted by " + getName(match.Submitter) + " @ " + getTime(match.Date) + " )";
     content += "<div><div class=\"Match\">" + result + log + "</div></div>";
