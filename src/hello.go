@@ -379,7 +379,7 @@ func latestMatch(w http.ResponseWriter, r *http.Request) {
 
 func requestMatchData(w http.ResponseWriter, r *http.Request) {
         c := appengine.NewContext(r)
-        queryUser := datastore.NewQuery("UserProfile").Ancestor(guestbookKey(c)).Order("Name")
+        queryUser := datastore.NewQuery("UserProfile").Ancestor(guestbookKey(c)).Order("-Rating")
         var users []UserProfile
         if _, err := queryUser.GetAll(c, &users); err != nil {
                 http.Error(w, err.Error(), http.StatusInternalServerError)

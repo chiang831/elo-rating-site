@@ -48,8 +48,6 @@ function fillInLeaderboard(userData) {
                 "<th>Wins</th>" +
                 "<th>Losses</th>" +
                 "</tr>";
-  // userData is originally sorted by name
-  userData.sort(function(a, b){ return b.Rating - a.Rating; })
   for (var i in userData) {
     user = userData[i];
     var row = "<tr>" +
