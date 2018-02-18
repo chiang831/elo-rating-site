@@ -77,7 +77,7 @@ function fillInDetailMatchResult(results) {
     var row = "<tr><td>" + results[i].Name + "</td>";
     for (var j in resultRow) {
       resultEntry = resultRow[j];
-      row += "<td bgcolor=" + resultEntry.Color + ">" +
+      row += "<td style=\"background-color:" + resultEntry.Color + "\">" +
              resultEntry.Wins + " / " + resultEntry.Losses + "</td>";
     }
     row += "</tr>";

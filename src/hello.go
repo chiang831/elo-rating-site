@@ -10,6 +10,7 @@ import (
         "appengine/datastore"
         "appengine/user"
         "strconv"
+        "fmt"
 )
 
 func init() {
@@ -328,14 +329,26 @@ func requestMatches(w http.ResponseWriter, r *http.Request) {
 // Get the color of win/lose/tie
 func getColor(u UserProfile, v UserProfile, wins int, losses int) string {
     if u.Name == v.Name {
-        return "silver"
+        // solver
+        return "rgb(192,192,192)"
     } else if (wins == 0) && (losses == 0) {
-        return "white"
-    } else if wins > losses {
-        return "limegreen"
-    } else if wins < losses {
-        return "tomato"
+        // white
+        return "rgb(255,255,255)"
+    } else if wins >= losses {
+        ratio := float64(wins - losses) / float64(wins + losses)
+        // limegreen: rgb(50, 205, 50)
+        // gold: rgb(255, 215, 0)
+        r := 50.0 * ratio + 255.0 * (1.0 - ratio)
+        g := 205.0 * ratio + 215.0 * (1.0 - ratio)
+        b := 50.0 * ratio + 0.0 * (1.0 - ratio)
+        return fmt.Sprintf("rgb(%.0f,%.0f,%.0f)", r, g, b)
     } else {
-        return "yellow"
+        ratio := float64(2 * wins) / float64(wins + losses)
+        // gold: rgb(255, 215, 0)
+        // tomato: rgb(255, 99, 71)
+        r := 255.0 * ratio + 255.0 * (1.0 - ratio)
+        g := 215.0 * ratio + 99.0 * (1.0 - ratio)
+        b := 0.0 * ratio + 71.0 * (1.0 - ratio)
+        return fmt.Sprintf("rgb(%.0f,%.0f,%.0f)", r, g, b)
     }
 }
