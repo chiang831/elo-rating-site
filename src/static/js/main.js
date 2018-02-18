@@ -25,14 +25,14 @@ function getMatchData() {
 function getMatches() {
   console.log("get matches")
   // Get available matches from JSON API.
-  var num_matches = document.getElementsByName("num_matches")[0].value;
+  var num_matches = document.getElementById("num_matches").value;
   httpGetAsync(location.origin + "/request_matches?num=" + num_matches, fillInMatches);
 }
 
 function getGreetings() {
   console.log("get greetings")
   // Get available greetings from JSON API.
-  var num_greeting = document.getElementsByName("num_greetings")[0].value;
+  var num_greeting = document.getElementById("num_greetings").value;
   httpGetAsync(location.origin + "/request_greetings?num=" + num_greeting, fillInGreetings);
 }
 

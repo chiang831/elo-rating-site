@@ -329,7 +329,7 @@ func requestMatches(w http.ResponseWriter, r *http.Request) {
 // Get the color of win/lose/tie
 func getColor(u UserProfile, v UserProfile, wins int, losses int) string {
     if u.Name == v.Name {
-        // solver
+        // silver
         return "rgb(192,192,192)"
     } else if (wins == 0) && (losses == 0) {
         // white
