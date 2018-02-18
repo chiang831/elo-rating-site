@@ -80,7 +80,7 @@ function fillInMessage(r) {
   if (lm != null ) {
     var message_div = document.getElementById("message");
     var message = "Latest match:<br>";
-    message += lm.Match.Winner + " (" + Math.round(lm.Match.WinnerRatingBefore) + " &#x27a8; " + Math.round(lm.Match.WinnerRatingAfter) + ") ";
+    message += lm.Winner + " (" + Math.round(lm.WinnerRatingBefore) + " &#x27a8; " + Math.round(lm.WinnerRatingAfter) + ") ";
     message += "<br>";
     if (lm.Expected) {
         message += " &#9876; ";
@@ -88,7 +88,7 @@ function fillInMessage(r) {
         message += " &#x1F525; ";
     }
     message += "<br>";
-    message += lm.Match.Loser + " (" + Math.round(lm.Match.LoserRatingBefore) + " &#x27a8; " + Math.round(lm.Match.LoserRatingAfter) + ") ";
+    message += lm.Loser + " (" + Math.round(lm.LoserRatingBefore) + " &#x27a8; " + Math.round(lm.LoserRatingAfter) + ") ";
     console.log("message = " + message);
 
     message_div.innerHTML = message;
@@ -99,8 +99,8 @@ function fillInMessage(r) {
     setTimeout(
       function() {
         if (v_w != null && v_l != null && vue_created == true) {
-          v_w.selected = lm.Match.Winner;
-          v_l.selected = lm.Match.Loser;
+          v_w.selected = lm.Winner;
+          v_l.selected = lm.Loser;
         }
       }, 500
     );
