@@ -67,6 +67,9 @@
     </div>
     <div onclick="show_hide('show_matches')"><h1>Recent Matches</h1></div>
     <div id="show_matches" style="display:block">
+      <p>Show <input type="text" size=2 value="10" name="num_matches"></input> matches.
+        <input type="button" value="Apply" onclick="getMatches()"></input></h2>
+      </p>
       <div id="matches"></div>
     </div>
     <div onclick="show_hide('show_greetings')"><h1>Recent Comments</h1></div>
@@ -77,6 +80,9 @@
         <h2><button type="submit" class="btn-success">Add comment</button></h2>
         </p>
       </form>
+      <p>Show <input type="text" size=2 value="10" name="num_greetings"></input> comments.
+        <input type="button" value="Apply" onclick="getGreetings()"> </input></h2>
+      </p>
       <div id="greetings"></div>
     </div>
     <script src="/static/js/main.js"></script>

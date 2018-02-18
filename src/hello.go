@@ -9,6 +9,7 @@ import (
         "appengine"
         "appengine/datastore"
         "appengine/user"
+        "strconv"
 )
 
 func init() {
@@ -258,11 +259,26 @@ func requestMatchData(w http.ResponseWriter, r *http.Request) {
 
 func requestGreetings(w http.ResponseWriter, r *http.Request) {
         c := appengine.NewContext(r)
-        queryGreeting := datastore.NewQuery("Greeting").Ancestor(guestbookKey(c)).Order("-Date").Limit(20)
-        greetings := make([]Greeting, 0, 20)
-        if _, err := queryGreeting.GetAll(c, &greetings); err != nil {
-                http.Error(w, err.Error(), http.StatusInternalServerError)
-                return
+
+        // Get number of greetings to retrieve
+        // If the number is not a positive integer, return nil
+        limit := -1
+        keys, ok := r.URL.Query()["num"]
+        if ok && len(keys) == 1 {
+                new_limit, err := strconv.Atoi(keys[0])
+                if err == nil && new_limit > 0 {
+                        limit = new_limit
+                }
+        }
+
+        greetings := []Greeting{}
+        if limit != -1 {
+                queryGreeting := datastore.NewQuery("Greeting").Ancestor(guestbookKey(c)).Order("-Date").Limit(limit)
+                greetings = make([]Greeting, 0, limit)
+                if _, err := queryGreeting.GetAll(c, &greetings); err != nil {
+                        http.Error(w, err.Error(), http.StatusInternalServerError)
+                        return
+                }
         }
 
         js, err_js := json.Marshal(greetings)
@@ -277,11 +293,26 @@ func requestGreetings(w http.ResponseWriter, r *http.Request) {
 
 func requestMatches(w http.ResponseWriter, r *http.Request) {
         c := appengine.NewContext(r)
-        queryMatch := datastore.NewQuery("Match").Ancestor(guestbookKey(c)).Order("-Date").Limit(20)
-        matches := make([]Match, 0, 20)
-        if _, err := queryMatch.GetAll(c, &matches); err != nil {
-                http.Error(w, err.Error(), http.StatusInternalServerError)
-                return
+
+        // Get number of matches to retrieve
+        // If the number is not a positive integer, return nil
+        limit := -1
+        keys, ok := r.URL.Query()["num"]
+        if ok && len(keys) == 1 {
+                new_limit, err := strconv.Atoi(keys[0])
+                if err == nil && new_limit > 0 {
+                        limit = new_limit
+                }
+        }
+
+        matches := []Match{}
+        if limit != -1 {
+                queryMatch := datastore.NewQuery("Match").Ancestor(guestbookKey(c)).Order("-Date").Limit(limit)
+                matches = make([]Match, 0, limit)
+                if _, err := queryMatch.GetAll(c, &matches); err != nil {
+                        http.Error(w, err.Error(), http.StatusInternalServerError)
+                        return
+                }
         }
 
         js, err_js := json.Marshal(matches)

@@ -17,21 +17,23 @@ function onLoad() {
 
 function getMatchData() {
   console.log("get match data")
-  // Get available matches  from JSON API.
+  // Get available match data from JSON API.
   httpGetAsync(location.origin + "/request_match_data", fillInMatchData);
 }
 
 
 function getMatches() {
   console.log("get matches")
-  // Get available matches  from JSON API.
-  httpGetAsync(location.origin + "/request_matches", fillInMatches);
+  // Get available matches from JSON API.
+  var num_matches = document.getElementsByName("num_matches")[0].value;
+  httpGetAsync(location.origin + "/request_matches?num=" + num_matches, fillInMatches);
 }
 
 function getGreetings() {
   console.log("get greetings")
-  // Get available matches  from JSON API.
-  httpGetAsync(location.origin + "/request_greetings", fillInGreetings);
+  // Get available greetings from JSON API.
+  var num_greeting = document.getElementsByName("num_greetings")[0].value;
+  httpGetAsync(location.origin + "/request_greetings?num=" + num_greeting, fillInGreetings);
 }
 
 function fillInMatchData(r) {
@@ -86,6 +88,7 @@ function fillInDetailMatchResult(results) {
 
 function fillInMatches(r) {
   var matches = JSON.parse(r);
+  if (matches.length == 0) return;
   var matches_div = document.getElementById("matches");
   var content = "";
   for (var i in matches) {
@@ -107,6 +110,7 @@ function fillInMatches(r) {
 
 function fillInGreetings(r) {
   var greetings = JSON.parse(r);
+  if (greetings.length == 0) return;
   var greetings_div = document.getElementById("greetings");
   var content = "";
   for (var i in greetings) {
