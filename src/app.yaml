@@ -2,7 +2,7 @@ runtime: go
 api_version: go1
 
 handlers:
-- url: /rerun
+- url: /(rerun|delete_match_entry|switch_match_users)
   script: _go_app
   login: admin
 - url: /.*

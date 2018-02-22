@@ -24,6 +24,11 @@ type Match struct {
         Date       time.Time
 }
 
+type MatchWithKey struct {
+        Match      Match
+        Key        string
+}
+
 type UserProfile struct {
         Tournament string
         Name       string

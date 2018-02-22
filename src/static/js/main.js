@@ -2,8 +2,12 @@ function httpGetAsync(theUrl, callback)
 {
   var xmlHttp = new XMLHttpRequest();
   xmlHttp.onreadystatechange = function() {
-      if (xmlHttp.readyState == 4 && xmlHttp.status == 200)
-          callback(xmlHttp.responseText);
+    if (xmlHttp.readyState == 4) {
+      if (xmlHttp.status == 200)
+        callback(xmlHttp.responseText);
+      else if (xmlHttp.status == 401)
+        alert("You are not admin QQ");
+    }
   }
   xmlHttp.open("GET", theUrl, true); // true for asynchronous
   xmlHttp.send(null);
@@ -83,12 +87,13 @@ function fillInDetailMatchResult(r) {
 }
 
 function fillInRecentMatches(r) {
-  var matches = JSON.parse(r);
+  var matchWithKeys = JSON.parse(r);
   if (matches.length == 0) return;
   var matches_div = document.getElementById("matches");
   var content = "";
-  for (var i in matches) {
-    match = matches[i];
+  for (var i in matchWithKeys) {
+    match = matchWithKeys[i].Match;
+    key = matchWithKeys[i].Key
     var result = "<h3>" +
                  match.Winner + " (" + Math.round(match.WinnerRatingBefore) +
                  " <font color=\"green\">&#x27a8;</font> " + 
@@ -99,7 +104,18 @@ function fillInRecentMatches(r) {
                  Math.round(match.LoserRatingAfter) + ") " +
                  match.Note + "</h3>";
     var log = "( Submitted by " + getName(match.Submitter) + " @ " + getTime(match.Date) + " )";
-    content += "<div><div class=\"Match\">" + result + log + "</div></div>";
+    var edit_div_str = "<div id=" + key + " style=\"display:none\">" +
+                       "<input type=\"button\" value=\"Delete\"" +
+                       "onclick=confirmDelete('" + key + "')></input>" +
+                       "<input type=\"button\" value=\"Switch\" style=\"margin-left:10px\"" +
+                       "onclick=confirmSwitch('" + key + "')></input>" +
+                       "</div>";
+    var message_div_str = "<div class=\"Match\" onclick=\"show_hide('" + key + "')\">" +
+                          result + log +
+                          edit_div_str +
+                          "</div>";
+    var match_div_str = "<div>" + message_div_str + "</div>";
+    content += match_div_str;
   }
   matches_div.innerHTML = content;
 }
@@ -127,6 +143,26 @@ function show_hide(id) {
     } else {
       target.style.display = "block";
     }
+  }
+}
+
+// Callback function for editing matches
+function refreshData(ret) {
+  console.log(JSON.parse(ret));
+  getLeaderboard();
+  getDetailMatchResult();
+  getRecentMatches();
+}
+
+function confirmDelete(key) {
+  if (confirm("Are you sure to delete this match?")) {
+    httpGetAsync(location.origin + "/delete_match_entry?key=" + key, refreshData);
+  }
+}
+
+function confirmSwitch(key) {
+  if (confirm("Are you sure to switch winner/loser of this match?")) {
+    httpGetAsync(location.origin + "/switch_match_users?key=" + key, refreshData);
   }
 }
 

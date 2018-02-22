@@ -1,6 +1,7 @@
 package guestbook
 
 import (
+        "encoding/json"
         "net/http"
         "appengine"
         "appengine/datastore"
@@ -55,7 +56,8 @@ func rerunMatches(w http.ResponseWriter, r *http.Request) {
         for i, m := range matches {
                 datastore.Put(c, keyMatches[i], &m);
         }
-        http.Redirect(w, r, "/", http.StatusFound)
+        // Clear latest match
+        existLatestMatch = false
 }
 
 func findUserIndex(name string, users []UserProfile) int {
@@ -66,3 +68,85 @@ func findUserIndex(name string, users []UserProfile) int {
         }
         return -1
 }
+
+// Delete a match entry from database
+func deleteMatchEntry(w http.ResponseWriter, r *http.Request) {
+        c := appengine.NewContext(r)
+        encoded_string := ""
+        ret := ""
+
+        // Get encoded string
+        keys, ok := r.URL.Query()["key"]
+        if ok && len(keys) == 1 {
+                encoded_string = keys[0]
+        }
+
+        // Get decoded key
+        key, err := datastore.DecodeKey(encoded_string)
+        if err != nil {
+                http.Error(w, err.Error(), http.StatusInternalServerError)
+                ret = "Error"
+        } else {
+                // Remove the key
+                datastore.Delete(c, key)
+                rerunMatches(w, r) // TODO(music960633): Should we run this here?
+                ret = "OK"
+        }
+
+        js, err_js := json.Marshal(ret)
+        if err_js != nil {
+                http.Error(w, err_js.Error(), http.StatusInternalServerError)
+                return
+        }
+
+        w.Header().Set("Content-Type", "application/json")
+        w.Write(js)
+}
+
+// Switch winner/loser of a match
+func switchMatchUsers(w http.ResponseWriter, r *http.Request) {
+        c := appengine.NewContext(r)
+        encoded_string := ""
+        ret := ""
+
+        // Get encoded string
+        keys, ok := r.URL.Query()["key"]
+        if ok && len(keys) == 1 {
+                encoded_string = keys[0]
+        }
+
+        // Get decoded key
+        key, err := datastore.DecodeKey(encoded_string)
+        if err != nil {
+                http.Error(w, err.Error(), http.StatusInternalServerError)
+                ret = "Error"
+        } else {
+                // Get the entry
+                match := Match{}
+                err = datastore.Get(c, key, &match)
+                if err != nil {
+                        http.Error(w, err.Error(), http.StatusInternalServerError)
+                        ret = "Error"
+                } else {
+                        // Swap winner and loser
+                        tmp := match.Winner
+                        match.Winner = match.Loser
+                        match.Loser = tmp
+
+                        // Store back
+                        datastore.Put(c, key, &match)
+                        rerunMatches(w, r) // TODO(music960633): Should we run this here?
+                        ret = "OK"
+                }
+        }
+
+        js, err_js := json.Marshal(ret)
+        if err_js != nil {
+                http.Error(w, err_js.Error(), http.StatusInternalServerError)
+                return
+        }
+
+        w.Header().Set("Content-Type", "application/json")
+        w.Write(js)
+}
+

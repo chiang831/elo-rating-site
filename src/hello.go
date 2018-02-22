@@ -26,6 +26,8 @@ func init() {
         http.HandleFunc("/request_detail_results", requestDetailMatchResults)
         http.HandleFunc("/request_greetings", requestGreetings)
         http.HandleFunc("/request_recent_matches", requestRecentMatches)
+        http.HandleFunc("/delete_match_entry", deleteMatchEntry)
+        http.HandleFunc("/switch_match_users", switchMatchUsers)
         http.HandleFunc("/rerun", rerunMatches)
         http.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.Dir("static"))))
 }
@@ -324,17 +326,25 @@ func requestRecentMatches(w http.ResponseWriter, r *http.Request) {
                 }
         }
 
-        matches := []Match{}
+        matchWithKeys := []MatchWithKey{}
         if limit != -1 {
                 queryMatch := datastore.NewQuery("Match").Ancestor(guestbookKey(c)).Order("-Date").Limit(limit)
-                matches = make([]Match, 0, limit)
-                if _, err := queryMatch.GetAll(c, &matches); err != nil {
+                var matches []Match
+                keyMatches, err := queryMatch.GetAll(c, &matches)
+                if err != nil {
                         http.Error(w, err.Error(), http.StatusInternalServerError)
                         return
                 }
+                matchWithKeys = make([]MatchWithKey, len(matches))
+                for i, m := range matches {
+                        matchWithKeys[i] = MatchWithKey {
+                                Match: m,
+                                Key: keyMatches[i].Encode(),
+                        }
+                }
         }
 
-        js, err_js := json.Marshal(matches)
+        js, err_js := json.Marshal(matchWithKeys)
         if err_js != nil {
                 http.Error(w, err_js.Error(), http.StatusInternalServerError)
                 return
