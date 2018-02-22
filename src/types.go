@@ -28,14 +28,9 @@ type UserProfile struct {
         Tournament string
         Name       string
         Rating     float64
+        Wins       int
+        Losses     int
         JoinDate   time.Time
-}
-
-type UserDataToShow struct {
-        Name        string
-        Rating      int
-        Wins        int
-        Losses      int
 }
 
 type DetailMatchResultEntry struct {
@@ -44,12 +39,7 @@ type DetailMatchResultEntry struct {
         Color       string
 }
 
-type DetailMatchResult struct {
-        Name        string
-        Results     []DetailMatchResultEntry
-}
-
 type MatchData struct {
-        UserDataToShows []UserDataToShow
-        DetailMatchResults []DetailMatchResult
+        Usernames   []string
+        ResultTable [][]DetailMatchResultEntry
 }

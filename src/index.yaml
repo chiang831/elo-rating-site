@@ -8,7 +8,6 @@ indexes:
   ancestor: yes
   properties:
   - name: Date
-    direction: desc
 - kind: UserProfile
   ancestor: yes
   properties:

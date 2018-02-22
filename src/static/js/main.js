@@ -10,39 +10,32 @@ function httpGetAsync(theUrl, callback)
 }
 
 function onLoad() {
-  getMatchData();
-  getMatches();
+  getLeaderboard();
+  getDetailMatchResult();
+  getRecentMatches();
   getGreetings();
 }
 
-function getMatchData() {
-  console.log("get match data")
-  // Get available match data from JSON API.
-  httpGetAsync(location.origin + "/request_match_data", fillInMatchData);
+function getLeaderboard() {
+  httpGetAsync(location.origin + "/request_user_profiles", fillInLeaderboard);
 }
 
+function getDetailMatchResult() {
+  httpGetAsync(location.origin + "/request_detail_results", fillInDetailMatchResult);
+}
 
-function getMatches() {
-  console.log("get matches")
-  // Get available matches from JSON API.
+function getRecentMatches() {
   var num_matches = document.getElementById("num_matches").value;
-  httpGetAsync(location.origin + "/request_matches?num=" + num_matches, fillInMatches);
+  httpGetAsync(location.origin + "/request_recent_matches?num=" + num_matches, fillInRecentMatches);
 }
 
 function getGreetings() {
-  console.log("get greetings")
-  // Get available greetings from JSON API.
   var num_greeting = document.getElementById("num_greetings").value;
   httpGetAsync(location.origin + "/request_greetings?num=" + num_greeting, fillInGreetings);
 }
 
-function fillInMatchData(r) {
-  var matchData = JSON.parse(r);
-  fillInLeaderboard(matchData.UserDataToShows);
-  fillInDetailMatchResult(matchData.DetailMatchResults);
-}
-
-function fillInLeaderboard(userData) {
+function fillInLeaderboard(r) {
+  var users = JSON.parse(r);
   var leaderboard_table = document.getElementById("leaderboard");
   var content = "<tr>" +
                 "<th>Player</th>" +
@@ -50,11 +43,11 @@ function fillInLeaderboard(userData) {
                 "<th>Wins</th>" +
                 "<th>Losses</th>" +
                 "</tr>";
-  for (var i in userData) {
-    user = userData[i];
+  for (var i in users) {
+    user = users[i];
     var row = "<tr>" +
               "<td>" + user.Name + "</td>" +
-              "<td>" + user.Rating + "</td>" +
+              "<td>" + Math.floor(user.Rating) + "</td>" +
               "<td>" + user.Wins + "</td>" +
               "<td>" + user.Losses + "</td>" +
               "</tr>";
@@ -63,18 +56,21 @@ function fillInLeaderboard(userData) {
   leaderboard_table.innerHTML = content;
 }
 
-function fillInDetailMatchResult(results) {
+function fillInDetailMatchResult(r) {
+  var matchData = JSON.parse(r);
+  var usernames = matchData.Usernames;
+  var resultTable = matchData.ResultTable;
   var detail_result_table = document.getElementById("detail_result");
   // header
   var content = "<tr><td></td>";
-  for (var i in results) {
-    content += ("<td>" + results[i].Name + "</td>");
+  for (var i in usernames) {
+    content += ("<td>" + usernames[i] + "</td>");
   }
   content += "</tr>";
   // rows
-  for (var i in results) {
-    resultRow = results[i].Results;
-    var row = "<tr><td>" + results[i].Name + "</td>";
+  for (var i in resultTable) {
+    resultRow = resultTable[i];
+    var row = "<tr><td>" + usernames[i] + "</td>";
     for (var j in resultRow) {
       resultEntry = resultRow[j];
       row += "<td style=\"background-color:" + resultEntry.Color + "\">" +
@@ -86,7 +82,7 @@ function fillInDetailMatchResult(results) {
   detail_result_table.innerHTML = content;
 }
 
-function fillInMatches(r) {
+function fillInRecentMatches(r) {
   var matches = JSON.parse(r);
   if (matches.length == 0) return;
   var matches_div = document.getElementById("matches");

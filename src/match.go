@@ -72,8 +72,9 @@ func submitMatchResult(w http.ResponseWriter, r *http.Request) {
                 return
         }
 
-        // Try to update winner rating.
+        // Try to update winner
         winner.Rating = match.WinnerRatingAfter
+        winner.Wins += 1
         _, err = datastore.Put(c, &keyWinner, &winner)
         if err != nil {
                 // Remove match entity as best-effort fallback.
@@ -85,12 +86,14 @@ func submitMatchResult(w http.ResponseWriter, r *http.Request) {
 
         // Try to update loser rating.
         loser.Rating = match.LoserRatingAfter
+        loser.Losses += 1
         _, err = datastore.Put(c, &keyLoser, &loser)
         if err != nil {
                 // Remove match entity as best-effort fallback.
                 datastore.Delete(c, keyMatch)
                 // Change winner rating back.
                 winner.Rating = match.WinnerRatingBefore
+                winner.Wins -= 1
                 datastore.Put(c, &keyWinner, &winner)
 
                 http.Error(w, err.Error(), http.StatusInternalServerError)

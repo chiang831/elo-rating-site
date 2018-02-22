@@ -22,9 +22,11 @@ func init() {
         http.HandleFunc("/submit_match_result", submitMatchResult)
         http.HandleFunc("/users", listUsers)
         http.HandleFunc("/latest_match", requestLatestMatch)
-        http.HandleFunc("/request_match_data", requestMatchData)
+        http.HandleFunc("/request_user_profiles", requestUserProfiles)
+        http.HandleFunc("/request_detail_results", requestDetailMatchResults)
         http.HandleFunc("/request_greetings", requestGreetings)
-        http.HandleFunc("/request_matches", requestMatches)
+        http.HandleFunc("/request_recent_matches", requestRecentMatches)
+        http.HandleFunc("/rerun", rerunMatches)
         http.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.Dir("static"))))
 }
 
@@ -36,6 +38,7 @@ func guestbookKey(c appengine.Context) *datastore.Key {
 
 var existLatestMatch = false
 var latestMatch Match
+const startingElo float64 = 1200.0
 
 // [START func_test_root]
 func root(w http.ResponseWriter, r *http.Request) {
@@ -89,11 +92,12 @@ func submitUser(w http.ResponseWriter, r *http.Request) {
         }
 
         // Is a valid new user.
-        const startingElo = 1200
         g := UserProfile{
                 Tournament: "Default",
                 Name: name,
                 Rating: startingElo,
+                Wins: 0,
+                Losses: 0,
                 JoinDate: time.Now(),
         }
 
@@ -190,7 +194,8 @@ func requestLatestMatch(w http.ResponseWriter, r *http.Request) {
         w.Write(js)
 }
 
-func requestMatchData(w http.ResponseWriter, r *http.Request) {
+
+func requestUserProfiles(w http.ResponseWriter, r *http.Request) {
         c := appengine.NewContext(r)
         queryUser := datastore.NewQuery("UserProfile").Ancestor(guestbookKey(c)).Order("-Rating")
         var users []UserProfile
@@ -198,13 +203,40 @@ func requestMatchData(w http.ResponseWriter, r *http.Request) {
                 http.Error(w, err.Error(), http.StatusInternalServerError)
                 return
         }
-        userDataToShows := make([]UserDataToShow, len(users))
-        detailMatchResults := make([]DetailMatchResult, len(users))
-        for i, u := range users {
-                results := make([]DetailMatchResultEntry, len(users))
-                oneUserTotalWin := 0
-                oneUserTotalLose := 0
 
+        js, err_js := json.Marshal(users)
+        if err_js != nil {
+                http.Error(w, err_js.Error(), http.StatusInternalServerError)
+                return
+        }
+
+        w.Header().Set("Content-Type", "application/json")
+        w.Write(js)
+}
+
+func requestDetailMatchResults(w http.ResponseWriter, r *http.Request) {
+        c := appengine.NewContext(r)
+
+        // Get users
+        queryUser := datastore.NewQuery("UserProfile").Ancestor(guestbookKey(c)).Order("-Rating")
+        var users []UserProfile
+        if _, err := queryUser.GetAll(c, &users); err != nil {
+                http.Error(w, err.Error(), http.StatusInternalServerError)
+                return
+        }
+
+        // Set usernames
+        usernames := make([]string, len(users))
+        for i, u := range users {
+                usernames[i] = u.Name
+        }
+
+        // Set resultTable
+        resultTable := make([][]DetailMatchResultEntry, len(users))
+        for i := range resultTable {
+                resultTable[i] = make([]DetailMatchResultEntry, len(users))
+        }
+        for i, u := range users {
                 for j, v := range users {
                         queryOneUserWin := datastore.NewQuery("Match").Ancestor(guestbookKey(c)).Filter("Winner =", u.Name).Filter("Loser =", v.Name).KeysOnly()
                         keyWin, err := queryOneUserWin.GetAll(c, nil)
@@ -221,31 +253,17 @@ func requestMatchData(w http.ResponseWriter, r *http.Request) {
 
                         wins := len(keyWin)
                         losses := len(keyLoss)
-                        oneUserTotalWin += wins
-                        oneUserTotalLose += losses
-
-                        results[j] = DetailMatchResultEntry {
+                        resultTable[i][j] = DetailMatchResultEntry {
                                 Wins: wins,
                                 Losses: losses,
                                 Color: getColor(u, v, wins, losses),
                         }
                 }
-
-                userDataToShows[i] = UserDataToShow {
-                        Name: u.Name,
-                        Rating: int(u.Rating),
-                        Wins: oneUserTotalWin,
-                        Losses: oneUserTotalLose,
-                }
-                detailMatchResults[i] = DetailMatchResult {
-                        Name: u.Name,
-                        Results: results,
-                }
         }
 
         matchData := MatchData {
-                UserDataToShows: userDataToShows,
-                DetailMatchResults: detailMatchResults,
+                Usernames: usernames,
+                ResultTable: resultTable,
         }
 
         js, err_js := json.Marshal(matchData)
@@ -292,7 +310,7 @@ func requestGreetings(w http.ResponseWriter, r *http.Request) {
         w.Write(js)
 }
 
-func requestMatches(w http.ResponseWriter, r *http.Request) {
+func requestRecentMatches(w http.ResponseWriter, r *http.Request) {
         c := appengine.NewContext(r)
 
         // Get number of matches to retrieve
