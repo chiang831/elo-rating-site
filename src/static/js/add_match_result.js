@@ -65,13 +65,13 @@ function onLoad() {
 function getUsers () {
   console.log("get users");
   // Get available user data from JSON API.
-  httpGetAsync(location.origin + "/users", createVueElements);
+  httpGetAsync(location.origin + "/request_users", createVueElements);
 }
 
 function getAlert() {
   console.log("get message");
   // Get available message from JSON API.
-  httpGetAsync(location.origin + "/latest_match", fillInMessage);
+  httpGetAsync(location.origin + "/request_latest_match", fillInMessage);
 }
 
 function fillInMessage(r) {

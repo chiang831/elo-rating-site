@@ -14,21 +14,27 @@ import (
 )
 
 func init() {
+        // Main page
         http.HandleFunc("/", root)
-        http.HandleFunc("/sign", sign)
+        // Child pages
         http.HandleFunc("/add_user", addUser)
-        http.HandleFunc("/submit_user", submitUser)
         http.HandleFunc("/add_match_result", addMatchResult)
+        // Submit data
+        http.HandleFunc("/submit_greeting", submitGreeting)
+        http.HandleFunc("/submit_user", submitUser)
         http.HandleFunc("/submit_match_result", submitMatchResult)
-        http.HandleFunc("/users", listUsers)
-        http.HandleFunc("/latest_match", requestLatestMatch)
+        // Requests
+        http.HandleFunc("/request_users", requestUsers)
+        http.HandleFunc("/request_latest_match", requestLatestMatch)
         http.HandleFunc("/request_user_profiles", requestUserProfiles)
         http.HandleFunc("/request_detail_results", requestDetailMatchResults)
         http.HandleFunc("/request_greetings", requestGreetings)
         http.HandleFunc("/request_recent_matches", requestRecentMatches)
+        // Admin area
         http.HandleFunc("/delete_match_entry", deleteMatchEntry)
         http.HandleFunc("/switch_match_users", switchMatchUsers)
         http.HandleFunc("/rerun", rerunMatches)
+        // Static files
         http.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.Dir("static"))))
 }
 
@@ -120,8 +126,8 @@ func addMatchResult(w http.ResponseWriter, r *http.Request) {
 }
 
 
-// [START func_sign]
-func sign(w http.ResponseWriter, r *http.Request) {
+// [START func_addGreeting]
+func submitGreeting(w http.ResponseWriter, r *http.Request) {
         // [START new_context]
         c := appengine.NewContext(r)
         // [END new_context]
@@ -153,9 +159,9 @@ func sign(w http.ResponseWriter, r *http.Request) {
         http.Redirect(w, r, "/", http.StatusFound)
         // [END if_user]
 }
-// [END func_sign]
+// [END func_addGreeting]
 
-func listUsers(w http.ResponseWriter, r *http.Request) {
+func requestUsers(w http.ResponseWriter, r *http.Request) {
         c := appengine.NewContext(r)
         queryUser := datastore.NewQuery("UserProfile").Ancestor(guestbookKey(c)).Order("Name")
         var users []UserProfile
