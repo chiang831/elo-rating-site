@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <title>User profile</title>
+    <link style="text/css" rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+    <link style="text/css" rel="stylesheet" href="/static/styles.css">
+  </head>
+  <body>
+    <h1>Profile</h1>
+    <h2>{{.Name}}</h2>
+    <table style="width:40%;margin-left:auto;margin-right:auto">
+      <tr>
+        <th><a href="https://en.wikipedia.org/wiki/Elo_rating_system">ELO Rating</a></th>
+        <th>Wins</th>
+        <th>Losses</th>
+      </tr>
+      <tr>
+        <td>{{printf "%.0f" .Rating}}</td>
+        <td>{{.Wins}}</td>
+        <td>{{.Losses}}</td>
+      </tr>
+    </table>
+    <form action="/">
+        <h2>
+        <button type="submit" class="btn-success">Go Back</button>
+        </h2>
+    </form>
+  </body>
+</html>

@@ -4,6 +4,7 @@ import (
         "encoding/json"
         "path"
         "net/http"
+        "html/template"
         "regexp"
         "time"
         "appengine"
@@ -19,6 +20,7 @@ func init() {
         // Child pages
         http.HandleFunc("/add_user", addUser)
         http.HandleFunc("/add_match_result", addMatchResult)
+        http.HandleFunc("/profile", profile)
         // Submit data
         http.HandleFunc("/submit_greeting", submitGreeting)
         http.HandleFunc("/submit_user", submitUser)
@@ -391,3 +393,34 @@ func getColor(u UserProfile, v UserProfile, wins int, losses int) string {
         return fmt.Sprintf("rgb(%.0f,%.0f,%.0f)", r, g, b)
     }
 }
+
+func profile(w http.ResponseWriter, r *http.Request) {
+        c := appengine.NewContext(r)
+        // Get username
+        username := ""
+        keys, ok := r.URL.Query()["user"]
+        if ok && len(keys) == 1 {
+                username = keys[0]
+        }
+        exist, _, user, err := existUser(c, username)
+        if err != nil {
+                http.Error(w, err.Error(), http.StatusInternalServerError)
+                return
+        } else if !exist {
+                http.Redirect(w, r, "/", http.StatusFound)
+                return
+        }
+        // User template
+        profile_path := path.Join("static", "profile.html")
+        tmpl, tmpl_err := template.ParseFiles(profile_path)
+        if tmpl_err != nil {
+                http.Error(w, tmpl_err.Error(), http.StatusInternalServerError)
+                return
+        }
+        if err = tmpl.Execute(w, user); err != nil {
+                http.Error(w, tmpl_err.Error(), http.StatusInternalServerError)
+                return
+        }
+        // http.ServeFile(w, r, path.Join("static", "profile.html"))
+}
+

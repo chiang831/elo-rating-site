@@ -50,7 +50,7 @@ function fillInLeaderboard(r) {
   for (var i in users) {
     user = users[i];
     var row = "<tr>" +
-              "<td>" + user.Name + "</td>" +
+              "<td><a href=\"/profile?user=" + user.Name + "\">" + user.Name + "</a></td>" +
               "<td>" + Math.round(user.Rating) + "</td>" +
               "<td>" + user.Wins + "</td>" +
               "<td>" + user.Losses + "</td>" +
