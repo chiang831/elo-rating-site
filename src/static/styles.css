@@ -1,0 +1,56 @@
+body {
+    margin: 5;
+    text-align: center;
+}
+table, th, td {
+    border: 1px solid black;
+    border-collapse: collapse;
+}
+th, td {
+    padding: 5px;
+    text-align: center;
+}
+@font-face {
+    font-family: Tetrominoes;
+    src: url('/static/Tetrominoes.ttf');
+}
+h1 {
+    font-family: Tetrominoes;
+    font-weight: bold;
+}
+.Match {
+    display: inline-block;
+    padding: 5px 10px;
+    border: 1px solid black;
+    border-radius: 10px;
+    background-color: ivory;
+    margin-bottom: 10px;
+}
+.Match h3 {
+    margin-top: 2px;
+    margin-bottom: 2px;
+}
+.Greeting {
+    display: inline-block;
+    padding: 5px 10px;
+    border: 1px solid black;
+    border-radius: 10px;
+    background-color: azure;
+    margin-bottom: 10px;
+}
+.Greeting h3 {
+    margin-top: 5px;
+    margin-bottom: 5px;
+}
+.Prob{
+  display: inline-block;
+  padding: 5px 10px;
+  border: 1px solid black;
+  border-radius: 10px;
+  background-color: ivory;
+  margin-bottom: 10px;
+}
+.ProbNumber {
+  font-weight: bold;
+  color: LightCoral;
+}
