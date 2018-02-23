@@ -32,12 +32,17 @@ func rerunMatches(w http.ResponseWriter, r *http.Request) {
                 users[i].Wins = 0
                 users[i].Losses = 0
         }
+        // Name to index map
+        mp := make(map[string]int)
+        for i, u := range users {
+                mp[u.Name] = i
+        }
         // Run matches
         for i, m := range matches {
-                idxW := findUserIndex(m.Winner, users)
-                idxL := findUserIndex(m.Loser, users)
-                if idxW == -1 || idxL == -1 {
-                        http.Error(w, err.Error(), http.StatusInternalServerError)
+                idxW, existW := mp[m.Winner]
+                idxL, existL := mp[m.Loser]
+                if !existW || !existL {
+                        http.Error(w, "Datastore error", http.StatusInternalServerError)
                         return
                 }
                 // Update match

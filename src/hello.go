@@ -218,7 +218,6 @@ func requestUserProfiles(w http.ResponseWriter, r *http.Request) {
 
 func requestDetailMatchResults(w http.ResponseWriter, r *http.Request) {
         c := appengine.NewContext(r)
-
         // Get users
         queryUser := datastore.NewQuery("UserProfile").Ancestor(guestbookKey(c)).Order("-Rating")
         var users []UserProfile
@@ -226,43 +225,49 @@ func requestDetailMatchResults(w http.ResponseWriter, r *http.Request) {
                 http.Error(w, err.Error(), http.StatusInternalServerError)
                 return
         }
-
+        // Get matches
+        queryMatch := datastore.NewQuery("Match").Ancestor(guestbookKey(c))
+        var matches []Match
+        if _, err := queryMatch.GetAll(c, &matches); err != nil {
+                http.Error(w, err.Error(), http.StatusInternalServerError)
+                return
+        }
+        // Name to index map
+        mp := make(map[string]int)
+        for i, u := range users {
+                mp[u.Name] = i
+        }
         // Set usernames
         usernames := make([]string, len(users))
         for i, u := range users {
                 usernames[i] = u.Name
         }
-
         // Set resultTable
         resultTable := make([][]DetailMatchResultEntry, len(users))
         for i := range resultTable {
                 resultTable[i] = make([]DetailMatchResultEntry, len(users))
+                for j := range resultTable[i] {
+                        resultTable[i][j].Wins = 0
+                        resultTable[i][j].Losses = 0
+                }
         }
-        for i, u := range users {
-                for j, v := range users {
-                        queryOneUserWin := datastore.NewQuery("Match").Ancestor(guestbookKey(c)).Filter("Winner =", u.Name).Filter("Loser =", v.Name).KeysOnly()
-                        keyWin, err := queryOneUserWin.GetAll(c, nil)
-                        if err != nil {
-                                http.Error(w, err.Error(), http.StatusInternalServerError)
-                                return
-                        }
-                        queryOneUserLoss := datastore.NewQuery("Match").Ancestor(guestbookKey(c)).Filter("Loser =", u.Name).Filter("Winner =", v.Name).KeysOnly()
-                        keyLoss, err := queryOneUserLoss.GetAll(c, nil)
-                        if err != nil {
-                                http.Error(w, err.Error(), http.StatusInternalServerError)
-                                return
-                        }
-
-                        wins := len(keyWin)
-                        losses := len(keyLoss)
-                        resultTable[i][j] = DetailMatchResultEntry {
-                                Wins: wins,
-                                Losses: losses,
-                                Color: getColor(u, v, wins, losses),
-                        }
+        for _, m := range matches {
+                idxW, existW := mp[m.Winner]
+                idxL, existL := mp[m.Loser]
+                if !existW || !existL {
+                        http.Error(w, "Datastore Error", http.StatusInternalServerError)
+                        return
+                }
+                resultTable[idxW][idxL].Wins += 1
+                resultTable[idxL][idxW].Losses += 1
+        }
+        for i := range resultTable {
+                for j := range resultTable[i] {
+                        resultTable[i][j].Color = getColor(users[i], users[j], resultTable[i][j].Wins, resultTable[i][j].Losses)
                 }
         }
 
+        // Return JSON
         matchData := MatchData {
                 Usernames: usernames,
                 ResultTable: resultTable,
