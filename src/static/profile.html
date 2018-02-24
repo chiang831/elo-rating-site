@@ -6,7 +6,7 @@
     <link style="text/css" rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
     <link style="text/css" rel="stylesheet" href="/static/styles.css">
   </head>
-  <body>
+  <body onload="onLoad({{.Name}})">
     <h1>Profile</h1>
     <h2>{{.Name}}</h2>
     <table style="width:40%;margin-left:auto;margin-right:auto">
@@ -21,10 +21,13 @@
         <td>{{.Losses}}</td>
       </tr>
     </table>
+    <div id="rating_history" style="width:50%;height:300px;margin-left:auto;margin-right:auto;margin-top:50px"></div>
     <form action="/">
         <h2>
         <button type="submit" class="btn-success">Go Back</button>
         </h2>
     </form>
+    <script src="https://d3js.org/d3.v3.js"></script>
+    <script src="static/js/profile.js"></script>
   </body>
 </html>

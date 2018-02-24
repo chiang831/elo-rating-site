@@ -48,3 +48,9 @@ type MatchData struct {
         Usernames   []string
         ResultTable [][]DetailMatchResultEntry
 }
+
+type RatingHistory struct {
+        Rating      int   // Show int is enough
+        Date        time.Time
+        Win         bool
+}

@@ -12,6 +12,7 @@ import (
         "appengine/user"
         "strconv"
         "fmt"
+        "sort"
 )
 
 func init() {
@@ -32,6 +33,7 @@ func init() {
         http.HandleFunc("/request_detail_results", requestDetailMatchResults)
         http.HandleFunc("/request_greetings", requestGreetings)
         http.HandleFunc("/request_recent_matches", requestRecentMatches)
+        http.HandleFunc("/request_rating_history", requestRatingHistory)
         // Admin area
         http.HandleFunc("/delete_match_entry", deleteMatchEntry)
         http.HandleFunc("/switch_match_users", switchMatchUsers)
@@ -358,6 +360,72 @@ func requestRecentMatches(w http.ResponseWriter, r *http.Request) {
         }
 
         js, err_js := json.Marshal(matchWithKeys)
+        if err_js != nil {
+                http.Error(w, err_js.Error(), http.StatusInternalServerError)
+                return
+        }
+
+        w.Header().Set("Content-Type", "application/json")
+        w.Write(js)
+}
+
+func requestRatingHistory(w http.ResponseWriter, r *http.Request) {
+        c := appengine.NewContext(r)
+        // Get username
+        username := ""
+        keys, ok := r.URL.Query()["user"]
+        if ok && len(keys) == 1 {
+                username = keys[0]
+        }
+        exist, _, user, err := existUser(c, username)
+        if err != nil {
+                http.Error(w, err.Error(), http.StatusInternalServerError)
+                return
+        } else if !exist {
+                http.Error(w, "User does not exist", http.StatusInternalServerError)
+                return
+        }
+        // Get user matches
+        queryMatchW := datastore.NewQuery("Match").Ancestor(guestbookKey(c)).Filter("Winner =", username)
+        var matchesW []Match
+        if _, err := queryMatchW.GetAll(c, &matchesW); err != nil {
+                http.Error(w, err.Error(), http.StatusInternalServerError)
+                return
+        }
+        queryMatchL := datastore.NewQuery("Match").Ancestor(guestbookKey(c)).Filter("Loser =", username)
+        var matchesL []Match
+        if _, err := queryMatchL.GetAll(c, &matchesL); err != nil {
+                http.Error(w, err.Error(), http.StatusInternalServerError)
+                return
+        }
+        // Create history
+        n := len(matchesW)
+        m := len(matchesL)
+        ratingHistories := make([]RatingHistory, n + m + 1)
+        ratingHistories[0] = RatingHistory {
+                Rating: int(startingElo),
+                Date: user.JoinDate,
+                Win: true,
+        }
+        for i, m := range matchesW {
+                ratingHistories[i + 1]  = RatingHistory {
+                        Rating: int(m.WinnerRatingAfter),
+                        Date: m.Date,
+                        Win: true,
+                }
+        }
+        for i, m := range matchesL {
+                ratingHistories[i + n + 1]  = RatingHistory {
+                        Rating: int(m.LoserRatingAfter),
+                        Date: m.Date,
+                        Win: false,
+                }
+        }
+        // Sort history
+        sort.Slice(ratingHistories, func (i, j int) bool {
+              return ratingHistories[i].Date.Before(ratingHistories[j].Date); });
+
+        js, err_js := json.Marshal(ratingHistories)
         if err_js != nil {
                 http.Error(w, err_js.Error(), http.StatusInternalServerError)
                 return
