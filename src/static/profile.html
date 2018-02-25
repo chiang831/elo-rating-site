@@ -9,7 +9,7 @@
   <body onload="onLoad({{.Name}})">
     <h1>Profile</h1>
     <h2>{{.Name}}</h2>
-    <table style="width:40%;margin-left:auto;margin-right:auto">
+    <table style="width:40%;margin-left:auto;margin-right:auto;margin-top:20px">
       <tr>
         <th><a href="https://en.wikipedia.org/wiki/Elo_rating_system">ELO Rating</a></th>
         <th>Wins</th>
@@ -21,7 +21,14 @@
         <td>{{.Losses}}</td>
       </tr>
     </table>
-    <div id="rating_history" style="width:50%;height:300px;margin-left:auto;margin-right:auto;margin-top:50px"></div>
+    <div onclick="show_hide('show_rating_history')"><h1>Rating Chart</h1></div>
+    <div id="show_rating_history" style="display:block">
+      <div id="rating_history" style="width:50%;height:300px;margin-left:auto;margin-right:auto;margin-top:20px"></div>
+    </div>
+    <div onclick="show_hide('show_user_matches')"><h1>User Matches</h1></div>
+    <div id="show_user_matches" style="display:block">
+      <div id="user_matches"></div>
+    </div>
     <form action="/">
         <h2>
         <button type="submit" class="btn-success">Go Back</button>

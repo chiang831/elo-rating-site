@@ -14,15 +14,85 @@ function httpGetAsync(theUrl, callback)
 }
 
 function onLoad(username) {
-  getRatingHistory(username);
+  getUserMatches(username);
 }
 
-function getRatingHistory(username) {
-  httpGetAsync(location.origin + "/request_rating_history?user=" + username, d3DrawRating)
+function getUserMatches(username) {
+  httpGetAsync(location.origin + "/request_user_matches?user=" + username, processUserMatches(username));
 }
 
-function d3DrawRating(r) {
-  var ratingHistories = JSON.parse(r);
+function processUserMatches(username) {
+  return function(r) {
+    var userMatches = JSON.parse(r);
+    if (userMatches.length == 0) {
+      return;
+    }
+    var ratings = [getUserRatingBefore(username, userMatches[0])];
+    for (var i in userMatches) {
+      ratings.push(getUserRatingAfter(username, userMatches[i]));
+    }
+    d3DrawRating(ratings);
+    fillInUserMatches(username, userMatches);
+  }
+}
+
+function getUserRatingBefore(username, match) {
+  if (match.Winner == username) {
+    return Math.round(match.WinnerRatingBefore);
+  } else if (match.Loser == username) {
+    return Math.round(match.LoserRatingBefore);
+  }
+  // should not get here
+  console.log("User does not play this natch.");
+  return -1;
+}
+
+function getUserRatingAfter(username, match) {
+  if (match.Winner == username) {
+    return Math.round(match.WinnerRatingAfter);
+  } else if (match.Loser == username) {
+    return Math.round(match.LoserRatingAfter);
+  }
+  // should not get here
+  console.log("User does not play this natch.");
+  return -1;
+}
+
+function fillInUserMatches(username, matches) {
+  var matches_div = document.getElementById("user_matches");
+  var content = "";
+  for (var i = matches.length - 1; i >= 0; --i) {
+    match = matches[i];
+    var result = "<h3>" +
+                 match.Winner + " (" + Math.round(match.WinnerRatingBefore) +
+                 " <font color=\"green\">&#x27a8;</font> " + 
+                 Math.round(match.WinnerRatingAfter) + ") " +
+                 (match.Expected? " &#9876; " : " &#x1F525; ") +
+                 match.Loser + " (" + Math.round(match.LoserRatingBefore) +
+                 " <font color=\"red\">&#x27a8;</font> " +
+                 Math.round(match.LoserRatingAfter) + ") " +
+                 match.Note + "</h3>";
+    var log = "( Timestamp: " + getTime(match.Date) + " )";
+    var message_div_str = "<div class=\"Match\" style=\"background-color:" + getColor(username, match) + "\">" + result + log + "</div>";
+    var match_div_str = "<div>" + message_div_str + "</div>";
+    content += match_div_str;
+  }
+  matches_div.innerHTML = content;
+}
+
+// Decide win/lose display color
+function getColor(username, match) {
+  if (match.Winner == username) {
+    return "honeydew";
+  } else if (match.Loser == username) {
+    return "seashell";
+  }
+  // should not get here
+  console.log("User does not play this natch.");
+  return "white";
+}
+
+function d3DrawRating(ratings) {
   // Setup
   var graph_div = document.getElementById("rating_history");
   var graph_pos = graph_div.getBoundingClientRect();
@@ -30,14 +100,14 @@ function d3DrawRating(r) {
   var w = graph_pos.width - margin.left - margin.right;
   var h = graph_pos.height - margin.top - margin.bottom;
   // x-axis and y-axis
-  var x = d3.scale.linear().domain([0, ratingHistories.length]).range([0, w]);
-  var minRating = d3.min(ratingHistories, function(d){ return d.Rating; });
-  var maxRating = d3.max(ratingHistories, function(d){ return d.Rating; });
+  var x = d3.scale.linear().domain([0, ratings.length]).range([0, w]);
+  var minRating = d3.min(ratings);
+  var maxRating = d3.max(ratings);
   var y = d3.scale.linear().domain([minRating - 20, maxRating + 20]).range([h, 0]);
   // Draw axis and line
   var line = d3.svg.line()
                    .x(function(d, i) { return x(i); })
-	           .y(function(d) { return y(d.Rating); });
+	           .y(function(d) { return y(d); });
   var graph = d3.select("#rating_history")
                 .append("svg:svg")
 		.attr("width", graph_pos.width)
@@ -60,5 +130,23 @@ function d3DrawRating(r) {
        .attr("stroke-linejoin", "round")
        .attr("stroke-linecap", "round")
        .attr("stroke-width", 2)
-       .attr("d", line(ratingHistories));
+       .attr("d", line(ratings));
 }
+
+// Transform to local time
+function getTime(dateString) {
+  var date = new Date(dateString)
+  return date.toLocaleString();
+}
+
+function show_hide(id) {
+  var target = document.getElementById(id);
+  if (target) {
+    if (target.style.display == "block") {
+      target.style.display = "none";
+    } else {
+      target.style.display = "block";
+    }
+  }
+}
+
