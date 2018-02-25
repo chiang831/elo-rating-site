@@ -19,6 +19,7 @@ func init() {
         // Main page
         http.HandleFunc("/", root)
         // Child pages
+        http.HandleFunc("/admin", admin)
         http.HandleFunc("/add_user", addUser)
         http.HandleFunc("/add_match_result", addMatchResult)
         http.HandleFunc("/profile", profile)

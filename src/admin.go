@@ -5,7 +5,13 @@ import (
         "net/http"
         "appengine"
         "appengine/datastore"
+        "path"
 )
+
+// Admin page
+func admin(w http.ResponseWriter, r *http.Request) {
+        http.ServeFile(w, r, path.Join("static", "admin.html"))
+}
 
 // Re-run all matches
 func rerunMatches(w http.ResponseWriter, r *http.Request) {
@@ -63,15 +69,6 @@ func rerunMatches(w http.ResponseWriter, r *http.Request) {
         }
         // Clear latest match
         existLatestMatch = false
-}
-
-func findUserIndex(name string, users []UserProfile) int {
-        for i, u := range users {
-                if name == u.Name {
-                        return i
-                }
-        }
-        return -1
 }
 
 // Delete a match entry from database

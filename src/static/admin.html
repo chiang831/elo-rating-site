@@ -2,17 +2,22 @@
 <html>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <head>
-    <title>Add a player</title>
+    <title>Okbaby Admin</title>
     <link style="text/css" rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
     <link style="text/css" rel="stylesheet" href="/static/styles.css">
   </head>
   <body>
-    <h1>Add A Player</h1>
-    <form action="/submit_user" method="post">
+    <h1>Okbaby Admin</h1>
+    <form action="/rerun">
       <h2>
-        <p><textarea name="name" rows="1" cols="10"></textarea></p>
-        <button type="submit" class="btn-success">Confirm</button>
+        <button type="submit" class="btn-success">Rerun</button>
       </h2>
     </form>
+    <form action="/">
+      <h2>
+        <button type="submit" class="btn-success">Go Back</button>
+      </h2>
+    </form>
+    <script src="/static/js/admin.js"></script>
   </body>
 </html>
