@@ -96,7 +96,7 @@ function d3DrawRating(ratings) {
   // Setup
   var graph_div = document.getElementById("rating_history");
   var graph_pos = graph_div.getBoundingClientRect();
-  var margin = {left: 60, top: 20, right: 10, bottom: 30};  // left, top, right, bottom
+  var margin = {left: 50, top: 20, right: 40, bottom: 30};  // left, top, right, bottom
   var w = graph_pos.width - margin.left - margin.right;
   var h = graph_pos.height - margin.top - margin.bottom;
   // x-axis and y-axis
