@@ -7,9 +7,10 @@ import (
         "html/template"
         "regexp"
         "time"
-        "appengine"
-        "appengine/datastore"
-        "appengine/user"
+        "golang.org/x/net/context"
+        "google.golang.org/appengine"
+        "google.golang.org/appengine/datastore"
+        "google.golang.org/appengine/user"
         "strconv"
         "fmt"
         "sort"
@@ -27,6 +28,8 @@ func init() {
         http.HandleFunc("/submit_greeting", submitGreeting)
         http.HandleFunc("/submit_user", submitUser)
         http.HandleFunc("/submit_match_result", submitMatchResult)
+        http.HandleFunc("/submit_badge", submitBadge)
+        http.HandleFunc("/submit_user_badge", submitUserBadge)
         // Requests
         http.HandleFunc("/request_users", requestUsers)
         http.HandleFunc("/request_latest_match", requestLatestMatch)
@@ -35,6 +38,8 @@ func init() {
         http.HandleFunc("/request_greetings", requestGreetings)
         http.HandleFunc("/request_recent_matches", requestRecentMatches)
         http.HandleFunc("/request_user_matches", requestUserMatches)
+        http.HandleFunc("/request_all_badges", requestAllBadges)
+        http.HandleFunc("/request_user_badges", requestUserBadges)
         // Admin area
         http.HandleFunc("/delete_match_entry", deleteMatchEntry)
         http.HandleFunc("/switch_match_users", switchMatchUsers)
@@ -44,7 +49,7 @@ func init() {
 }
 
 // guestbookKey returns the key used for all guestbook entries.
-func guestbookKey(c appengine.Context) *datastore.Key {
+func guestbookKey(c context.Context) *datastore.Key {
         // The string "default_guestbook" here could be varied to have multiple guestbooks.
         return datastore.NewKey(c, "Guestbook", "default_guestbook", 0, nil)
 }
@@ -63,7 +68,7 @@ func addUser(w http.ResponseWriter, r *http.Request) {
         http.ServeFile(w, r, path.Join("static", "add_user.html"))
 }
 
-func existUser(c appengine.Context, name string) (bool, datastore.Key, UserProfile, error) {
+func existUser(c context.Context, name string) (bool, datastore.Key, UserProfile, error) {
         q := datastore.NewQuery("UserProfile").Ancestor(guestbookKey(c)).Filter("Name =", name)
         var users []UserProfile
         keys, err := q.GetAll(c, &users)
@@ -74,6 +79,19 @@ func existUser(c appengine.Context, name string) (bool, datastore.Key, UserProfi
                 return true, *keys[0], users[0], nil
         }
         return false, datastore.Key{}, UserProfile{}, nil
+}
+
+func existBadge(c context.Context, name string) (bool, datastore.Key, Badge, error) {
+        q := datastore.NewQuery("Badge").Ancestor(guestbookKey(c)).Filter("Name =", name)
+        var badges []Badge
+        keys, err := q.GetAll(c, &badges)
+        if err != nil {
+                return false, datastore.Key{}, Badge{}, err
+        }
+        if len(badges) != 0 {
+                return true, *keys[0], badges[0], nil
+        }
+        return false, datastore.Key{}, Badge{}, nil
 }
 
 // [START submit_match_result]
@@ -414,6 +432,74 @@ func requestUserMatches(w http.ResponseWriter, r *http.Request) {
               return allMatches[i].Date.Before(allMatches[j].Date); });
 
         js, err_js := json.Marshal(allMatches)
+        if err_js != nil {
+                http.Error(w, err_js.Error(), http.StatusInternalServerError)
+                return
+        }
+
+        w.Header().Set("Content-Type", "application/json")
+        w.Write(js)
+}
+
+func requestAllBadges(w http.ResponseWriter, r *http.Request) {
+        c := appengine.NewContext(r)
+        // Get all badges
+        queryBadge := datastore.NewQuery("Badge").Ancestor(guestbookKey(c))
+        var badges []Badge
+        if _, err := queryBadge.GetAll(c, &badges); err != nil {
+                http.Error(w, err.Error(), http.StatusInternalServerError)
+                return
+        }
+
+        js, err_js := json.Marshal(badges)
+        if err_js != nil {
+                http.Error(w, err_js.Error(), http.StatusInternalServerError)
+                return
+        }
+
+        w.Header().Set("Content-Type", "application/json")
+        w.Write(js)
+}
+
+func requestUserBadges(w http.ResponseWriter, r *http.Request) {
+        c := appengine.NewContext(r)
+        // Get username
+        username := ""
+        keys, ok := r.URL.Query()["user"]
+        if ok && len(keys) == 1 {
+                username = keys[0]
+        }
+        exist, _, _, err := existUser(c, username)
+        if err != nil {
+                http.Error(w, err.Error(), http.StatusInternalServerError)
+                return
+        } else if !exist {
+                http.Error(w, "User \"" + username + "\" does not exist", http.StatusInternalServerError)
+                return
+        }
+        // Get User badges
+        queryBadge := datastore.NewQuery("UserBadge").Ancestor(guestbookKey(c)).Filter("User =", username)
+        var userBadges []UserBadge
+        if _, err := queryBadge.GetAll(c, &userBadges); err != nil {
+                http.Error(w, err.Error(), http.StatusInternalServerError)
+                return
+        }
+
+        badges := []Badge{}
+        if len(userBadges) != 0 {
+                badges = make([]Badge, len(userBadges[0].BadgeNames))
+                for i, badgeName := range userBadges[0].BadgeNames {
+                        exist, _, badge, err := existBadge(c, badgeName)
+                        if exist && err == nil {
+                                badges[i] = badge
+                        } else {
+                                badges = []Badge{}
+                                break
+                        }
+                }
+        }
+
+        js, err_js := json.Marshal(badges)
         if err_js != nil {
                 http.Error(w, err_js.Error(), http.StatusInternalServerError)
                 return

@@ -48,3 +48,15 @@ type MatchData struct {
         Usernames   []string
         ResultTable [][]DetailMatchResultEntry
 }
+
+type Badge struct {
+        Name        string
+        Description string
+        Author      string
+        Path        string
+}
+
+type UserBadge struct {
+        User        string
+        BadgeNames  []string
+}

@@ -6,12 +6,25 @@
     <link style="text/css" rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
     <link style="text/css" rel="stylesheet" href="/static/styles.css">
   </head>
-  <body>
+  <body onload="onLoad()">
     <h1>Okbaby Admin</h1>
     <form action="/rerun">
       <h2>
         <button type="submit" class="btn-success">Rerun</button>
       </h2>
+    </form>
+    <h2>Badges</h2>
+    <table id="badges" style="width:40%;margin-left:auto;margin-right:auto;margin-bottom:20px"></table>
+    <form action="/submit_badge" method="post" enctype="multipart/form-data">
+      <p>Badge name: <input name="name" type="text"></input></p>
+      <p>Description: <input name="description" type="text"></input></p>
+      <p>Icon: <input name="icon" id="icon" type="file" style="display:inline"></input></p>
+      <h2><button type="subit" class="btn-success">Create a badge</button></h2>
+    </form>
+    <form action="/submit_user_badge" method="post">
+      <p>User name: <input name="user_name" type="text"></input></p>
+      <p>Badge name: <input name="badge_name" type="text"></input></p>
+      <h2><button type="submit" class="btn-success">Give a badge to user</button></h2>
     </form>
     <form action="/">
       <h2>

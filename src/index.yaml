@@ -17,3 +17,11 @@ indexes:
   ancestor: yes
   properties:
   - name: Name
+- kind: Badge
+  ancestor: yes
+  properties:
+  - name: Name
+- kind: UserBadge
+  ancestor: yes
+  properties:
+  - name: User

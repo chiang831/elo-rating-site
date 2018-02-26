@@ -5,7 +5,7 @@ handlers:
 - url: /favicon\.ico
   static_files: favicon.ico
   upload: favicon\.ico
-- url: /(admin|rerun|delete_match_entry|switch_match_users)
+- url: /(admin|rerun|delete_match_entry|switch_match_users|submit_badge|submit_user_badge)
   script: _go_app
   login: admin
 - url: /.*

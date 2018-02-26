@@ -14,11 +14,34 @@ function httpGetAsync(theUrl, callback)
 }
 
 function onLoad(username) {
+  getUserBadges(username);
   getUserMatches(username);
+}
+
+function getUserBadges(username) {
+  httpGetAsync(location.origin + "/request_user_badges?user=" + username, fillInUserBadges);
 }
 
 function getUserMatches(username) {
   httpGetAsync(location.origin + "/request_user_matches?user=" + username, processUserMatches(username));
+}
+
+function fillInUserBadges(r) {
+  var badges = JSON.parse(r);
+  var badges_div = document.getElementById("badges");
+  var content = "";
+  for (var i in badges) {
+    badge = badges[i];
+    var image = "<img src=\"" + badge.Path + "\" " +
+                "title=\"" + badge.Description + "\" " +
+                "style=\"margin-left:10px\" " +
+                "width=32 height=32></img>";
+    content += image;
+  }
+  if (content == "") {
+    content = "No badges"
+  }
+  badges_div.innerHTML = content;
 }
 
 function processUserMatches(username) {

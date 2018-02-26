@@ -4,9 +4,9 @@ import (
         "net/http"
         "math"
         "time"
-        "appengine"
-        "appengine/datastore"
-        "appengine/user"
+        "google.golang.org/appengine"
+        "google.golang.org/appengine/datastore"
+        "google.golang.org/appengine/user"
 )
 
 // Functions about creating match and calculating ELO ratings
