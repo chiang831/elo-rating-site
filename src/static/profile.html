@@ -8,16 +8,20 @@
   <body onload="onLoad({{.Name}})">
     <h1>Profile</h1>
     <h2>{{.Name}}</h2>
-    <table style="width:40%;margin-left:auto;margin-right:auto;margin-top:20px">
+    <table id="profile_table" style="width:40%;margin-left:auto;margin-right:auto;margin-top:20px">
       <tr>
         <th><a href="https://en.wikipedia.org/wiki/Elo_rating_system">ELO Rating</a></th>
         <th>Wins</th>
         <th>Losses</th>
+        <th>Max rating</th>
+        <th>Min rating</th>
       </tr>
       <tr>
         <td>{{printf "%.0f" .Rating}}</td>
         <td>{{.Wins}}</td>
         <td>{{.Losses}}</td>
+        <td></td>
+        <td></td>
       </tr>
     </table>
     <div onclick="show_hide('show_badges')"><h1>Badges</h1></div>

@@ -54,6 +54,7 @@ function processUserMatches(username) {
     for (var i in userMatches) {
       ratings.push(getUserRatingAfter(username, userMatches[i]));
     }
+    appendProfileTable(ratings);
     d3DrawRating(ratings);
     fillInUserMatches(username, userMatches);
   }
@@ -79,6 +80,14 @@ function getUserRatingAfter(username, match) {
   // should not get here
   console.log("User does not play this natch.");
   return -1;
+}
+
+function appendProfileTable(ratings) {
+  var profile_table = document.getElementById("profile_table");
+  var min_rating = Math.min(...ratings);
+  var max_rating = Math.max(...ratings);
+  profile_table.rows[1].cells[3].innerHTML = max_rating;
+  profile_table.rows[1].cells[4].innerHTML = min_rating;
 }
 
 function fillInUserMatches(username, matches) {
