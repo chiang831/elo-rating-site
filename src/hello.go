@@ -94,6 +94,29 @@ func existBadge(c context.Context, name string) (bool, datastore.Key, Badge, err
         return false, datastore.Key{}, Badge{}, nil
 }
 
+func getUserBadges(c context.Context, username string) []Badge {
+        queryBadge := datastore.NewQuery("UserBadge").Ancestor(guestbookKey(c)).Filter("User =", username)
+        var userBadges []UserBadge
+        if _, err := queryBadge.GetAll(c, &userBadges); err != nil {
+                return []Badge{}
+        }
+
+        badges := []Badge{}
+        if len(userBadges) != 0 {
+                badges = make([]Badge, len(userBadges[0].BadgeNames))
+                for i, badgeName := range userBadges[0].BadgeNames {
+                        exist, _, badge, err := existBadge(c, badgeName)
+                        if exist && err == nil {
+                                badges[i] = badge
+                        } else {
+                                badges = []Badge{}
+                                break
+                        }
+                }
+        }
+        return badges
+}
+
 // [START submit_match_result]
 func submitUser(w http.ResponseWriter, r *http.Request) {
         // [START new_context]
@@ -228,14 +251,27 @@ func requestLatestMatch(w http.ResponseWriter, r *http.Request) {
 
 func requestUserProfiles(w http.ResponseWriter, r *http.Request) {
         c := appengine.NewContext(r)
+        // Get users
         queryUser := datastore.NewQuery("UserProfile").Ancestor(guestbookKey(c)).Order("-Rating")
         var users []UserProfile
         if _, err := queryUser.GetAll(c, &users); err != nil {
                 http.Error(w, err.Error(), http.StatusInternalServerError)
                 return
         }
+        // Create public user profile
+        userProfileToShows := make([]UserProfileToShow, len(users))
+        for i, u := range users {
+                // Get badges
+                userProfileToShows[i] = UserProfileToShow {
+                        Name: u.Name,
+                        Rating: u.Rating,
+                        Wins: u.Wins,
+                        Losses: u.Losses,
+                        Badges: getUserBadges(c, u.Name),
+                }
+        }
 
-        js, err_js := json.Marshal(users)
+        js, err_js := json.Marshal(userProfileToShows)
         if err_js != nil {
                 http.Error(w, err_js.Error(), http.StatusInternalServerError)
                 return
@@ -478,26 +514,7 @@ func requestUserBadges(w http.ResponseWriter, r *http.Request) {
                 return
         }
         // Get User badges
-        queryBadge := datastore.NewQuery("UserBadge").Ancestor(guestbookKey(c)).Filter("User =", username)
-        var userBadges []UserBadge
-        if _, err := queryBadge.GetAll(c, &userBadges); err != nil {
-                http.Error(w, err.Error(), http.StatusInternalServerError)
-                return
-        }
-
-        badges := []Badge{}
-        if len(userBadges) != 0 {
-                badges = make([]Badge, len(userBadges[0].BadgeNames))
-                for i, badgeName := range userBadges[0].BadgeNames {
-                        exist, _, badge, err := existBadge(c, badgeName)
-                        if exist && err == nil {
-                                badges[i] = badge
-                        } else {
-                                badges = []Badge{}
-                                break
-                        }
-                }
-        }
+        badges := getUserBadges(c, username)
 
         js, err_js := json.Marshal(badges)
         if err_js != nil {

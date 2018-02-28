@@ -46,14 +46,21 @@ function fillInLeaderboard(r) {
                 "<th><a href=\"https://en.wikipedia.org/wiki/Elo_rating_system\">ELO Rating</a></th>" +
                 "<th>Wins</th>" +
                 "<th>Losses</th>" +
+                "<th>Badges</th>" +
                 "</tr>";
   for (var i in users) {
     user = users[i];
+    var badge_imgs = "";
+    for (var j in user.Badges) {
+      badge_imgs += "<img src=\"" + user.Badges[j].Path + "\" " +
+                    "title=\"" + user.Badges[j].Description + "\" width=16 height=16></img>";
+    }
     var row = "<tr>" +
               "<td><a href=\"/profile?user=" + user.Name + "\">" + user.Name + "</a></td>" +
               "<td>" + Math.round(user.Rating) + "</td>" +
               "<td>" + user.Wins + "</td>" +
               "<td>" + user.Losses + "</td>" +
+              "<td>" + badge_imgs + "</td>" +
               "</tr>";
     content += row;
   }

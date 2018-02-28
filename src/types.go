@@ -38,6 +38,14 @@ type UserProfile struct {
         JoinDate   time.Time
 }
 
+type UserProfileToShow struct {
+        Name       string
+        Rating     float64
+        Wins       int
+        Losses     int
+        Badges     []Badge
+}
+
 type DetailMatchResultEntry struct {
         Wins        int
         Losses      int
