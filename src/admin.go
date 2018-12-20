@@ -60,9 +60,9 @@ func rerunMatches(w http.ResponseWriter, r *http.Request) {
 		matches[i] = createMatch(users[idxW], users[idxL], m.Tournament, m.Submitter, m.Note, m.Date)
 		// Update user
 		users[idxW].Rating = matches[i].WinnerRatingAfter
-		users[idxW].Wins++
+		users[idxW].Wins += 1
 		users[idxL].Rating = matches[i].LoserRatingAfter
-		users[idxL].Losses++
+		users[idxL].Losses += 1
 	}
 	// Restore users
 	for i, u := range users {
@@ -79,17 +79,17 @@ func rerunMatches(w http.ResponseWriter, r *http.Request) {
 // Delete a match entry from database
 func deleteMatchEntry(w http.ResponseWriter, r *http.Request) {
 	c := appengine.NewContext(r)
-	encodedString := ""
+	encoded_string := ""
 	ret := ""
 
 	// Get encoded string
 	keys, ok := r.URL.Query()["key"]
 	if ok && len(keys) == 1 {
-		encodedString = keys[0]
+		encoded_string = keys[0]
 	}
 
 	// Get decoded key
-	key, err := datastore.DecodeKey(encodedString)
+	key, err := datastore.DecodeKey(encoded_string)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		ret = "Error"
@@ -100,9 +100,9 @@ func deleteMatchEntry(w http.ResponseWriter, r *http.Request) {
 		ret = "OK"
 	}
 
-	js, errJs := json.Marshal(ret)
-	if errJs != nil {
-		http.Error(w, errJs.Error(), http.StatusInternalServerError)
+	js, err_js := json.Marshal(ret)
+	if err_js != nil {
+		http.Error(w, err_js.Error(), http.StatusInternalServerError)
 		return
 	}
 
@@ -113,17 +113,17 @@ func deleteMatchEntry(w http.ResponseWriter, r *http.Request) {
 // Switch winner/loser of a match
 func switchMatchUsers(w http.ResponseWriter, r *http.Request) {
 	c := appengine.NewContext(r)
-	encodedString := ""
+	encoded_string := ""
 	ret := ""
 
 	// Get encoded string
 	keys, ok := r.URL.Query()["key"]
 	if ok && len(keys) == 1 {
-		encodedString = keys[0]
+		encoded_string = keys[0]
 	}
 
 	// Get decoded key
-	key, err := datastore.DecodeKey(encodedString)
+	key, err := datastore.DecodeKey(encoded_string)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		ret = "Error"
@@ -147,9 +147,9 @@ func switchMatchUsers(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	js, errJs := json.Marshal(ret)
-	if errJs != nil {
-		http.Error(w, errJs.Error(), http.StatusInternalServerError)
+	js, err_js := json.Marshal(ret)
+	if err_js != nil {
+		http.Error(w, err_js.Error(), http.StatusInternalServerError)
 		return
 	}
 
@@ -220,27 +220,27 @@ func submitBadge(w http.ResponseWriter, r *http.Request) {
 func submitUserBadge(w http.ResponseWriter, r *http.Request) {
 	c := appengine.NewContext(r)
 	// Get user
-	userName := r.FormValue("user_name")
-	existU, _, _, errUser := existUser(c, userName)
+	user_name := r.FormValue("user_name")
+	existU, _, _, errUser := existUser(c, user_name)
 	if errUser != nil {
 		http.Error(w, errUser.Error(), http.StatusInternalServerError)
 		return
 	} else if !existU {
-		http.Error(w, "User "+userName+" does not exist.", http.StatusInternalServerError)
+		http.Error(w, "User "+user_name+" does not exist.", http.StatusInternalServerError)
 		return
 	}
 	// Get badge
-	badgeName := r.FormValue("badge_name")
-	existB, _, _, errBadge := existBadge(c, badgeName)
+	badge_name := r.FormValue("badge_name")
+	existB, _, _, errBadge := existBadge(c, badge_name)
 	if errBadge != nil {
 		http.Error(w, errBadge.Error(), http.StatusInternalServerError)
 		return
 	} else if !existB {
-		http.Error(w, "Badge "+badgeName+" does not exist.", http.StatusInternalServerError)
+		http.Error(w, "Badge "+badge_name+" does not exist.", http.StatusInternalServerError)
 		return
 	}
 	// Get UserBadge
-	queryBadge := datastore.NewQuery("UserBadge").Ancestor(guestbookKey(c)).Filter("User =", userName)
+	queryBadge := datastore.NewQuery("UserBadge").Ancestor(guestbookKey(c)).Filter("User =", user_name)
 	var userBadges []UserBadge
 	keys, err := queryBadge.GetAll(c, &userBadges)
 	if err != nil {
@@ -253,14 +253,14 @@ func submitUserBadge(w http.ResponseWriter, r *http.Request) {
 	if len(userBadges) == 0 {
 		key = *datastore.NewIncompleteKey(c, "UserBadge", guestbookKey(c))
 		userBadge = UserBadge{
-			User:       userName,
+			User:       user_name,
 			BadgeNames: []string{},
 		}
 	} else {
 		key = *keys[0]
 		userBadge = userBadges[0]
 	}
-	userBadge.BadgeNames = append(userBadge.BadgeNames, badgeName)
+	userBadge.BadgeNames = append(userBadge.BadgeNames, badge_name)
 	datastore.Put(c, &key, &userBadge)
 	http.Redirect(w, r, "/admin", http.StatusFound)
 }
