@@ -25,16 +25,16 @@ func submitMatchResult(w http.ResponseWriter, r *http.Request) {
 	exist := false
 	var err error
 
-	winner_name := r.FormValue("winner")
-	loser_name := r.FormValue("loser")
+	winnerName := r.FormValue("winner")
+	loserName := r.FormValue("loser")
 
-	if winner_name == loser_name {
+	if winnerName == loserName {
 		http.Error(w, "Winner should not be the same as loser.",
 			http.StatusBadRequest)
 	}
 
 	// Check winner is registered.
-	exist, keyWinner, winner, err = existUser(c, winner_name)
+	exist, keyWinner, winner, err = existUser(c, winnerName)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -46,7 +46,7 @@ func submitMatchResult(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Check loser is registered.
-	exist, keyLoser, loser, err = existUser(c, loser_name)
+	exist, keyLoser, loser, err = existUser(c, loserName)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -75,7 +75,7 @@ func submitMatchResult(w http.ResponseWriter, r *http.Request) {
 
 	// Try to update winner
 	winner.Rating = match.WinnerRatingAfter
-	winner.Wins += 1
+	winner.Wins++
 	_, err = datastore.Put(c, &keyWinner, &winner)
 	if err != nil {
 		// Remove match entity as best-effort fallback.
@@ -87,14 +87,14 @@ func submitMatchResult(w http.ResponseWriter, r *http.Request) {
 
 	// Try to update loser rating.
 	loser.Rating = match.LoserRatingAfter
-	loser.Losses += 1
+	loser.Losses++
 	_, err = datastore.Put(c, &keyLoser, &loser)
 	if err != nil {
 		// Remove match entity as best-effort fallback.
 		datastore.Delete(c, keyMatch)
 		// Change winner rating back.
 		winner.Rating = match.WinnerRatingBefore
-		winner.Wins -= 1
+		winner.Wins--
 		datastore.Put(c, &keyWinner, &winner)
 
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -143,11 +143,11 @@ func newRatings(oldRatingW, oldRatingL float64) (float64, float64) {
 }
 
 // Expected score of elo_a in a match against elo_b
-func expectedScore(elo_a, elo_b float64) float64 {
-	return 1 / (1 + math.Pow(10, (elo_b-elo_a)/400))
+func expectedScore(eloA, eloB float64) float64 {
+	return 1 / (1 + math.Pow(10, (eloB-eloA)/400))
 }
 
 // Get the new Elo rating.
-func newElo(old_elo, expected, score float64) float64 {
-	return old_elo + 32.0*(score-expected)
+func newElo(oldElo, expected, score float64) float64 {
+	return oldElo + 32.0*(score-expected)
 }

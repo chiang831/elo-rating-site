@@ -218,9 +218,9 @@ func requestUsers(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	js, err_js := json.Marshal(users)
-	if err_js != nil {
-		http.Error(w, err_js.Error(), http.StatusInternalServerError)
+	js, errJs := json.Marshal(users)
+	if errJs != nil {
+		http.Error(w, errJs.Error(), http.StatusInternalServerError)
 		return
 	}
 
@@ -230,19 +230,19 @@ func requestUsers(w http.ResponseWriter, r *http.Request) {
 
 func requestLatestMatch(w http.ResponseWriter, r *http.Request) {
 	if !existLatestMatch {
-		nil_js, nil_err_js := json.Marshal(nil)
-		if nil_err_js != nil {
-			http.Error(w, nil_err_js.Error(), http.StatusInternalServerError)
+		nilJs, nilErrJs := json.Marshal(nil)
+		if nilErrJs != nil {
+			http.Error(w, nilErrJs.Error(), http.StatusInternalServerError)
 			return
 		}
 		w.Header().Set("Content-Type", "application/json")
-		w.Write(nil_js)
+		w.Write(nilJs)
 		return
 	}
 
-	js, err_js := json.Marshal(latestMatch)
-	if err_js != nil {
-		http.Error(w, err_js.Error(), http.StatusInternalServerError)
+	js, errJs := json.Marshal(latestMatch)
+	if errJs != nil {
+		http.Error(w, errJs.Error(), http.StatusInternalServerError)
 		return
 	}
 
@@ -272,9 +272,9 @@ func requestUserProfiles(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	js, err_js := json.Marshal(userProfileToShows)
-	if err_js != nil {
-		http.Error(w, err_js.Error(), http.StatusInternalServerError)
+	js, errJs := json.Marshal(userProfileToShows)
+	if errJs != nil {
+		http.Error(w, errJs.Error(), http.StatusInternalServerError)
 		return
 	}
 
@@ -324,8 +324,8 @@ func requestDetailMatchResults(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, "Datastore Error", http.StatusInternalServerError)
 			return
 		}
-		resultTable[idxW][idxL].Wins += 1
-		resultTable[idxL][idxW].Losses += 1
+		resultTable[idxW][idxL].Wins++
+		resultTable[idxL][idxW].Losses++
 	}
 	for i := range resultTable {
 		for j := range resultTable[i] {
@@ -339,9 +339,9 @@ func requestDetailMatchResults(w http.ResponseWriter, r *http.Request) {
 		ResultTable: resultTable,
 	}
 
-	js, err_js := json.Marshal(matchData)
-	if err_js != nil {
-		http.Error(w, err_js.Error(), http.StatusInternalServerError)
+	js, errJs := json.Marshal(matchData)
+	if errJs != nil {
+		http.Error(w, errJs.Error(), http.StatusInternalServerError)
 		return
 	}
 
@@ -357,9 +357,9 @@ func requestGreetings(w http.ResponseWriter, r *http.Request) {
 	limit := -1
 	keys, ok := r.URL.Query()["num"]
 	if ok && len(keys) == 1 {
-		new_limit, err := strconv.Atoi(keys[0])
-		if err == nil && new_limit > 0 {
-			limit = new_limit
+		newLimit, err := strconv.Atoi(keys[0])
+		if err == nil && newLimit > 0 {
+			limit = newLimit
 		}
 	}
 
@@ -373,9 +373,9 @@ func requestGreetings(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	js, err_js := json.Marshal(greetings)
-	if err_js != nil {
-		http.Error(w, err_js.Error(), http.StatusInternalServerError)
+	js, errJs := json.Marshal(greetings)
+	if errJs != nil {
+		http.Error(w, errJs.Error(), http.StatusInternalServerError)
 		return
 	}
 
@@ -391,9 +391,9 @@ func requestRecentMatches(w http.ResponseWriter, r *http.Request) {
 	limit := -1
 	keys, ok := r.URL.Query()["num"]
 	if ok && len(keys) == 1 {
-		new_limit, err := strconv.Atoi(keys[0])
-		if err == nil && new_limit > 0 {
-			limit = new_limit
+		newLimit, err := strconv.Atoi(keys[0])
+		if err == nil && newLimit > 0 {
+			limit = newLimit
 		}
 	}
 
@@ -415,9 +415,9 @@ func requestRecentMatches(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	js, err_js := json.Marshal(matchWithKeys)
-	if err_js != nil {
-		http.Error(w, err_js.Error(), http.StatusInternalServerError)
+	js, errJs := json.Marshal(matchWithKeys)
+	if errJs != nil {
+		http.Error(w, errJs.Error(), http.StatusInternalServerError)
 		return
 	}
 
@@ -469,9 +469,9 @@ func requestUserMatches(w http.ResponseWriter, r *http.Request) {
 		return allMatches[i].Date.Before(allMatches[j].Date)
 	})
 
-	js, err_js := json.Marshal(allMatches)
-	if err_js != nil {
-		http.Error(w, err_js.Error(), http.StatusInternalServerError)
+	js, errJs := json.Marshal(allMatches)
+	if errJs != nil {
+		http.Error(w, errJs.Error(), http.StatusInternalServerError)
 		return
 	}
 
@@ -489,9 +489,9 @@ func requestAllBadges(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	js, err_js := json.Marshal(badges)
-	if err_js != nil {
-		http.Error(w, err_js.Error(), http.StatusInternalServerError)
+	js, errJs := json.Marshal(badges)
+	if errJs != nil {
+		http.Error(w, errJs.Error(), http.StatusInternalServerError)
 		return
 	}
 
@@ -518,9 +518,9 @@ func requestUserBadges(w http.ResponseWriter, r *http.Request) {
 	// Get User badges
 	badges := getUserBadges(c, username)
 
-	js, err_js := json.Marshal(badges)
-	if err_js != nil {
-		http.Error(w, err_js.Error(), http.StatusInternalServerError)
+	js, errJs := json.Marshal(badges)
+	if errJs != nil {
+		http.Error(w, errJs.Error(), http.StatusInternalServerError)
 		return
 	}
 
@@ -572,14 +572,14 @@ func profile(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	// User template
-	profile_path := path.Join("static", "profile.html")
-	tmpl, tmpl_err := template.ParseFiles(profile_path)
-	if tmpl_err != nil {
-		http.Error(w, tmpl_err.Error(), http.StatusInternalServerError)
+	profilePath := path.Join("static", "profile.html")
+	tmpl, tmplErr := template.ParseFiles(profilePath)
+	if tmplErr != nil {
+		http.Error(w, tmplErr.Error(), http.StatusInternalServerError)
 		return
 	}
 	if err = tmpl.Execute(w, user); err != nil {
-		http.Error(w, tmpl_err.Error(), http.StatusInternalServerError)
+		http.Error(w, tmplErr.Error(), http.StatusInternalServerError)
 		return
 	}
 	// http.ServeFile(w, r, path.Join("static", "profile.html"))
