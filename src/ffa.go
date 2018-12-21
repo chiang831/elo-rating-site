@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"log"
 	"net/http"
 	"path"
 
@@ -32,7 +33,7 @@ func submitFfaMatchResult(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	fmt.Printf("matchResult: %+v\n", matchResult)
+	log.Printf("matchResult: %+v\n", matchResult)
 
 	err = validateTournamentName(ctx, matchResult.tournament)
 
