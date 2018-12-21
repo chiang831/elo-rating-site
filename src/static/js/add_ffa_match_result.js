@@ -55,7 +55,7 @@ function initializePage() {
     data: function () {
       return {
         options: tournamentsNames,
-        selected: ""
+        selected: null
       }
     }
   })
@@ -65,7 +65,7 @@ function initializePage() {
     data: function () {
       return {
         options: userNames,
-        selected: ""
+        selected: null
       }
     }
   });
@@ -87,13 +87,13 @@ function addUser() {
   }
 
   // Check if tournament is selected
-  if (tournamentSelector.selected == "") {
+  if (tournamentSelector.selected == null) {
     alert("You must select a tournament first!");
     return;
   }
 
   // Check if player is selected
-  if (userSelector.selected == "") {
+  if (userSelector.selected == null) {
     alert("You must select a player first!");
     return;
   }
