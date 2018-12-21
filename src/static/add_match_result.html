@@ -1,17 +1,21 @@
 <!DOCTYPE html>
 <html>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
 <head>
-<title>Add a match result</title>
-<script src="https://unpkg.com/vue@latest"></script>
-<script src="https://unpkg.com/vue-select@latest"></script>
-<link style="text/css" rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
-<link style="text/css" rel="stylesheet" href="/static/styles.css">
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width">
+  <title>Add a match result</title>
+  <script src="https://unpkg.com/vue@latest"></script>
+  <script src="https://unpkg.com/vue-select@latest"></script>
+  <link type="text/css" rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+  <link type="text/css" rel="stylesheet" href="/static/styles.css">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width">
 </head>
+
 <body onload="onLoad()">
-  <h4><div class="alert alert-success", id="message", style="display:none"></div></h4>
+  <h4>
+    <div class="alert alert-success" , id="message" , style="display:none"></div>
+  </h4>
   <form action="/submit_match_result" method="post">
     <h1>Add a Match Result</h1>
     <div id="winner_select" class="container-fluid" style="width:80%; text-align:left">
@@ -30,18 +34,19 @@
     </div>
     <div>
       <h2>Result / Note
-      <p><textarea name="note" rows="2" cols="20"></textarea></p>
+        <p><textarea name="note" rows="2" cols="20"></textarea></p>
       </h2>
     </div>
     <h2>
-    <button type="submit" class="btn-success">Confirm</button>
+      <button type="submit" class="btn-success">Confirm</button>
     </h2>
   </form>
   <form action="/">
-      <h2>
+    <h2>
       <button type="submit" class="btn-success">Go Back</button>
-      </h2>
+    </h2>
   </form>
   <script src="/static/js/add_match_result.js"></script>
 </body>
+
 </html>

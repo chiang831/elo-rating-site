@@ -23,9 +23,11 @@ func init() {
 	// Child pages
 	http.HandleFunc("/admin", admin)
 	http.HandleFunc("/add_user", addUser)
-	http.HandleFunc("/add_tournament", addTournament)
+	http.HandleFunc("/tournament", showTournaments)
 	http.HandleFunc("/add_match_result", addMatchResult)
+	http.HandleFunc("/add_ffa_match_result", showAddFfaMatchResult)
 	http.HandleFunc("/profile", profile)
+
 	// Submit data
 	http.HandleFunc("/submit_greeting", submitGreeting)
 	http.HandleFunc("/submit_user", submitUser)
@@ -33,6 +35,7 @@ func init() {
 	http.HandleFunc("/submit_badge", submitBadge)
 	http.HandleFunc("/submit_user_badge", submitUserBadge)
 	http.HandleFunc("/submit_tournament", submitTournament)
+	http.HandleFunc("/submit_ffa_match_result", submitFfaMatchResult)
 
 	// Requests
 	http.HandleFunc("/request_users", requestUsers)

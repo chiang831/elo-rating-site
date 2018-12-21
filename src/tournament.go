@@ -3,6 +3,7 @@ package guestbook
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 	"net/http"
 	"path"
 	"regexp"
@@ -12,9 +13,8 @@ import (
 	"google.golang.org/appengine/datastore"
 )
 
-// [START add_tournament]
-func addTournament(w http.ResponseWriter, r *http.Request) {
-	http.ServeFile(w, r, path.Join("static", "add_tournament.html"))
+func showTournaments(w http.ResponseWriter, r *http.Request) {
+	http.ServeFile(w, r, path.Join("static", "tournaments.html"))
 }
 
 // [START submit_tournament]
@@ -59,7 +59,7 @@ func submitTournament(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	http.Redirect(w, r, "/add_tournament", http.StatusFound)
+	http.Redirect(w, r, "/tournament", http.StatusFound)
 	return
 }
 
@@ -103,4 +103,19 @@ func requestTournaments(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
 	w.Write(js)
+}
+
+func validateTournamentName(ctx context.Context, name string) error {
+	if name == "" {
+		return errors.New("tournament name cannot be empty")
+	}
+
+	exist, _, _, err := isExistingTournament(ctx, name)
+	if err != nil {
+		return err
+	}
+	if !exist {
+		return fmt.Errorf("tournament name %s does not exist", name)
+	}
+	return nil
 }
