@@ -92,5 +92,23 @@ function addUser() {
     return;
   }
 
+  // Check if tournament is selected
+  if (tournamentSelector.selected == "") {
+    alert("You must select a tournament first!");
+    return;
+  }
+
+  // Check if player is selected
+  if (userSelector.selected == "") {
+    alert("You must select a player first!");
+    return;
+  }
+
+  // Check if the player is already added into the ranking
+  if (playerRankingList.ranking.includes(userSelector.selected)) {
+    alert("Player " + userSelector.selected + " is already added!");
+    return;
+  }
+
   playerRankingList.ranking.push(userSelector.selected);
 }
