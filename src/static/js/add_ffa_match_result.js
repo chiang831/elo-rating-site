@@ -62,11 +62,11 @@ function initializePage() {
     }
   })
 
-  v_w = new Vue({
+  user_selector = new Vue({
     el: '#user_selector',
     data: function() {
         return {
-          names: user_names,
+          options: user_names,
           selected: ""
        }
     }
