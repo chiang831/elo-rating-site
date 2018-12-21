@@ -17,13 +17,13 @@ function httpGetAsync(theUrl, callback) {
 }
 
 function httpPostJsonAsync(url, jsonObject, callback) {
-    var xmlhttp = new XMLHttpRequest();   // new HttpRequest instance 
+    var xmlHttp = new XMLHttpRequest();   // new HttpRequest instance 
     xmlHttp.onreadystatechange = function () {
         handleReadyStateChange(xmlHttp, callback);
     }
-    xmlhttp.open("POST", url, true);  // true for asynchronous
-    xmlhttp.setRequestHeader("Content-Type", "application/json");
+    xmlHttp.open("POST", url, true);  // true for asynchronous
+    xmlHttp.setRequestHeader("Content-Type", "application/json");
 
     var jsonString = (jsonObject == null) ? null : JSON.stringify(jsonObject);
-    xmlhttp.send(jsonString);
+    xmlHttp.send(jsonString);
 }
