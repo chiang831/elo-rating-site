@@ -57,12 +57,6 @@ function initializePage() {
         options: tournamentsNames,
         selected: ""
       }
-    },
-
-    methods: {
-      onChange: function (value) {
-        console.log("Tournament " + value + "is selected")
-      }
     }
   })
 
