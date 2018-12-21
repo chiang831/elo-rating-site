@@ -2,15 +2,16 @@
 <html>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <head>
-    <title>Add a player</title>
+    <title>Add a Tournament</title>
     <link type="text/css" rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/latest/css/bootstrap.min.css">
     <link type="text/css" rel="stylesheet" href="/static/styles.css">
   </head>
   <body>
-    <h1>Add A Player</h1>
-    <form action="/submit_user" method="post">
+    <h1>Add A Tournament</h1>
+    <form action="/submit_tournament" method="post">
       <h2>
-        <p><input type="text" name="name"></p>
+        <input type="text" name="name">
+        <br/>
         <button type="submit" class="btn-success">Confirm</button>
       </h2>
     </form>
