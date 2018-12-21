@@ -24,6 +24,8 @@ type FfaMatchResult struct {
 func submitFfaMatchResult(w http.ResponseWriter, req *http.Request) {
 	ctx := appengine.NewContext(req)
 
+	fmt.Printf("received match result: %s\n", req.Body)
+
 	decoder := json.NewDecoder(req.Body)
 	var matchResult FfaMatchResult
 	err := decoder.Decode(&matchResult)
