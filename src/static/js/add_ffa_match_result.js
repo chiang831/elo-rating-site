@@ -113,11 +113,12 @@ function submitRanking() {
   }
 
   var matchResult = {
+    // Fields must start with capital letters to fit golang requirement
     Tournament: tournamentSelector.selected,
     Ranking: playerRankingList.ranking
   };
 
-  if (matchResult.ranking.length < 2) {
+  if (matchResult.Ranking.length < 2) {
     alert("At least 2 players are required in a FFA ranking!");
     return;
   }
