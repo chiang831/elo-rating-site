@@ -113,8 +113,8 @@ function submitRanking() {
   }
 
   var matchResult = {
-    tournament: tournamentSelector.selected,
-    ranking: playerRankingList.ranking
+    Tournament: tournamentSelector.selected,
+    Ranking: playerRankingList.ranking
   };
 
   if (matchResult.ranking.length < 2) {

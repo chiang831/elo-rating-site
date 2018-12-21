@@ -18,8 +18,8 @@ func showAddFfaMatchResult(w http.ResponseWriter, r *http.Request) {
 // FfaMatchResult represents an FFA game match result, which will be in json format within the http post request
 // this should match the format in add_ffa_match_result.js
 type FfaMatchResult struct {
-	tournament string
-	ranking    []string // player name from first place to last place
+	Tournament string
+	Ranking    []string // player name from first place to last place
 }
 
 func submitFfaMatchResult(w http.ResponseWriter, req *http.Request) {
