@@ -9,14 +9,18 @@ function handleReadyStateChange(xmlHttp, callback) {
 
 function httpGetAsync(theUrl, callback) {
     var xmlHttp = new XMLHttpRequest();
-    xmlHttp.onreadystatechange = handleReadyStateChange(xmlHttp, callback);
+    xmlHttp.onreadystatechange = function () {
+        handleReadyStateChange(xmlHttp, callback);
+    }
     xmlHttp.open("GET", theUrl, true); // true for asynchronous
     xmlHttp.send(null);
 }
 
 function httpPostJsonAsync(url, jsonObject, callback) {
     var xmlhttp = new XMLHttpRequest();   // new HttpRequest instance 
-    xmlHttp.onreadystatechange = handleReadyStateChange(xmlHttp);
+    xmlHttp.onreadystatechange = function () {
+        handleReadyStateChange(xmlHttp, callback);
+    }
     xmlhttp.open("POST", url, true);  // true for asynchronous
     xmlhttp.setRequestHeader("Content-Type", "application/json");
     xmlhttp.send(JSON.stringify(jsonObject));

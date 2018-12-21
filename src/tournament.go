@@ -14,7 +14,6 @@ import (
 	"google.golang.org/appengine/datastore"
 )
 
-// [START add_tournament]
 func showTournaments(w http.ResponseWriter, r *http.Request) {
 	http.ServeFile(w, r, path.Join("static", "tournaments.html"))
 }
