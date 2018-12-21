@@ -3,7 +3,7 @@ function loadTournaments() {
 }
 
 function fillTournaments(responseText) {
-    var tournaments = JSON.parse(r);
+    var tournaments = JSON.parse(responseText);
     var container = document.getElementById("container");
     for (var i in tournaments) {
         var t = tournaments[i];
