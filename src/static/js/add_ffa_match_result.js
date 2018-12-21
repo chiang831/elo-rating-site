@@ -8,6 +8,8 @@ var tournaments = null;
 var tournamentNames = null;
 var tournamentSelector = null;
 
+var playerRankingList = null;
+
 var pageInitialized = false;
 
 function onLoad() {
@@ -50,7 +52,7 @@ function initializePage() {
 
   tournamentSelector = new Vue({
     el: '#tournament_selector',
-    data: function() {
+    data: function () {
       return {
         options: tournamentsNames,
         selected: ""
@@ -58,7 +60,7 @@ function initializePage() {
     },
 
     methods: {
-      onChange: function(value) {
+      onChange: function (value) {
         console.log("Tournament " + value + "is selected")
       }
     }
@@ -66,13 +68,20 @@ function initializePage() {
 
   userSelector = new Vue({
     el: '#user_selector',
-    data: function() {
-        return {
-          options: userNames,
-          selected: ""
-       }
+    data: function () {
+      return {
+        options: userNames,
+        selected: ""
+      }
     }
   });
+
+  playerRankingList = new Vue({
+    el: '#ranking',
+    data: {
+      ranking =[]
+    }
+  })
 
   pageInitialized = true;
 }
@@ -82,5 +91,5 @@ function addUser() {
     return;
   }
 
-  alert("Currently selected user: " + userSelector.selected);
+  playerRankingList.ranking.push(userSelector.selected);
 }

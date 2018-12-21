@@ -18,13 +18,21 @@
   <form action="/submit_ffa_match_result" method="post" onsubmit="onSubmit()">
     <h1>Add a Match Result</h1>
     <div class="container-fluid" style="width:80%; text-align:left">
-      <h3>Select a Tournament:</h3>
+      <h2>Select a Tournament:</h2>
       <v-select id="tournament_selector" v-model="selected" :options="options" :on-change="onChange"></v-select>
     </div>
     <div class="container-fluid" style="width:80%; text-align:left">
-      <h3>Select next user to add:</h2>
+      <h2>Select next user to add:</h2>
       <v-select id="user_selector" v-model="selected" :options="options"></v-select>
       <button class="btn-success" onclick="addUser()">Add</button>
+    </div>
+    <div class="container-fluid" style="width:80%; text-align:left">
+      <h2>Player Ranking</h2>
+      <div id="ranking">
+        <h3 v-for="player in ranking">
+          {{ player }}
+        </h3>
+      </div>
     </div>
 
 </body>
