@@ -25,6 +25,7 @@ func init() {
 	http.HandleFunc("/add_user", addUser)
 	http.HandleFunc("/tournament", showTournaments)
 	http.HandleFunc("/add_match_result", addMatchResult)
+	http.HandleFunc("/add_ffa_match_result", showAddFfaMatchResult)
 	http.HandleFunc("/profile", profile)
 
 	// Submit data
