@@ -42,6 +42,8 @@ func init() {
 	http.HandleFunc("/request_user_matches", requestUserMatches)
 	http.HandleFunc("/request_all_badges", requestAllBadges)
 	http.HandleFunc("/request_user_badges", requestUserBadges)
+	http.HandleFunc("/request_tournaments", requestTournaments)
+
 	// Admin area
 	http.HandleFunc("/delete_match_entry", deleteMatchEntry)
 	http.HandleFunc("/switch_match_users", switchMatchUsers)

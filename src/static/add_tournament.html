@@ -1,19 +1,28 @@
 <!DOCTYPE html>
 <html>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <head>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<head>
     <title>Add a Tournament</title>
     <link type="text/css" rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/latest/css/bootstrap.min.css">
     <link type="text/css" rel="stylesheet" href="/static/styles.css">
-  </head>
-  <body>
+    <script src="/static/js/http.js" async=true></script>
+    <script src="/static/js/add_tournament.js" async=true></script>
+</head>
+
+<body onload="loadTournaments()">
     <h1>Add A Tournament</h1>
     <form action="/submit_tournament" method="post">
-      <h2>
-        <input type="text" name="name">
-        <br/>
-        <button type="submit" class="btn-success">Confirm</button>
-      </h2>
+        <h2>
+            <input type="text" name="name">
+            <br />
+            <button type="submit" class="btn-success">Confirm</button>
+        </h2>
     </form>
-  </body>
+    <div>
+        <h2>Existing Tournaments</h2>
+        <div id="container"></div>
+    </div>
+</body>
+
 </html>
