@@ -1,5 +1,5 @@
 function loadTournaments() {
-    httpGetAsync(location.origin + "/read_tournaments", fillTournaments);
+    httpGetAsync(location.origin + "/request_tournaments", fillTournaments);
 }
 
 function fillTournaments(responseText) {
