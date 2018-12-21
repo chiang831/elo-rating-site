@@ -23,6 +23,7 @@ func init() {
 	// Child pages
 	http.HandleFunc("/admin", admin)
 	http.HandleFunc("/add_user", addUser)
+	http.HandleFunc("/add_tournament", addTournament)
 	http.HandleFunc("/add_match_result", addMatchResult)
 	http.HandleFunc("/profile", profile)
 	// Submit data
@@ -31,6 +32,8 @@ func init() {
 	http.HandleFunc("/submit_match_result", submitMatchResult)
 	http.HandleFunc("/submit_badge", submitBadge)
 	http.HandleFunc("/submit_user_badge", submitUserBadge)
+	http.HandleFunc("/submit_tournament", submitTournament)
+
 	// Requests
 	http.HandleFunc("/request_users", requestUsers)
 	http.HandleFunc("/request_latest_match", requestLatestMatch)
@@ -41,6 +44,8 @@ func init() {
 	http.HandleFunc("/request_user_matches", requestUserMatches)
 	http.HandleFunc("/request_all_badges", requestAllBadges)
 	http.HandleFunc("/request_user_badges", requestUserBadges)
+	http.HandleFunc("/request_tournaments", requestTournaments)
+
 	// Admin area
 	http.HandleFunc("/delete_match_entry", deleteMatchEntry)
 	http.HandleFunc("/switch_match_users", switchMatchUsers)

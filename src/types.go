@@ -68,3 +68,17 @@ type UserBadge struct {
 	User       string
 	BadgeNames []string
 }
+
+// Tournament object in datastore represents a particular tournament
+type Tournament struct {
+	Name string
+}
+
+// UserTournamentStats object in datastore represents an user's performance in a particular tournament
+type UserTournamentStats struct {
+	UserID       int
+	TournamentID int
+	Wins         int
+	Losses       int
+	Rating       float64
+}
