@@ -59,7 +59,7 @@ func submitTournament(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	http.Redirect(w, r, "/add_tournament", http.StatusFound)
+	http.Redirect(w, r, "/tournament", http.StatusFound)
 	return
 }
 
