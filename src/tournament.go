@@ -76,16 +76,28 @@ func isExistingTournament(c context.Context, name string) (bool, datastore.Key, 
 	return false, datastore.Key{}, Tournament{}, nil
 }
 
-func requestTournaments(w http.ResponseWriter, r *http.Request) {
+func readTournaments(ctx context.Context) ([]Tournament, error) {
+	query := datastore.NewQuery("Tournament").Ancestor(guestbookKey(ctx))
 	var tournaments []Tournament
+	if _, err := query.GetAll(ctx, &tournaments); err != nil {
+		return nil, err
+	}
 
-	//TODO(pg): Using dummy value now, should replace with real values from datastore
-	tournaments = append(tournaments, Tournament{Name: "Test1"})
-	tournaments = append(tournaments, Tournament{Name: "Test2"})
+	return tournaments, nil
+}
 
-	js, errJs := json.Marshal(tournaments)
-	if errJs != nil {
-		http.Error(w, errJs.Error(), http.StatusInternalServerError)
+func requestTournaments(w http.ResponseWriter, r *http.Request) {
+	ctx := appengine.NewContext(r)
+	tournaments, err := readTournaments(ctx)
+
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	js, err := json.Marshal(tournaments)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
