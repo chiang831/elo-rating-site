@@ -1,12 +1,14 @@
 Vue.component('v-select', VueSelect.VueSelect);
 
 var users = null;
-var user_names = null;
-var user_selector = null;
+var userNames = null;
+var userSelector = null;
 
 var tournaments = null;
-var tournament_names = null;
-var tournament_selector = null;
+var tournamentNames = null;
+var tournamentSelector = null;
+
+var pageInitialized = false;
 
 function onLoad() {
   requestUsers();
@@ -22,8 +24,8 @@ function requestUsers() {
 function handleUsersResponse(responseText) {
   users = JSON.parse(responseText);
   console.log("users = " + users);
-  user_names = users.map(u => u.Name);
-  console.log("user names = " + user_names);
+  userNames = users.map(u => u.Name);
+  console.log("user names = " + userNames);
   initializePage();
 }
 
@@ -36,8 +38,8 @@ function requestTournaments() {
 function handleTournamentsResponse(responseText) {
   tournaments = JSON.parse(responseText);
   console.log("tournaments = " + tournaments);
-  tournaments_names = tournaments.map(t => t.Name);
-  console.log("tournament names = " + tournaments_names);
+  tournamentsNames = tournaments.map(t => t.Name);
+  console.log("tournament names = " + tournamentsNames);
   initializePage();
 }
 
@@ -46,11 +48,11 @@ function initializePage() {
     return;
   }
 
-  tournament_selector = new Vue({
+  tournamentSelector = new Vue({
     el: '#tournament_selector',
     data: function() {
       return {
-        options: tournaments_names,
+        options: tournamentsNames,
         selected: ""
       }
     },
@@ -62,13 +64,23 @@ function initializePage() {
     }
   })
 
-  user_selector = new Vue({
+  userSelector = new Vue({
     el: '#user_selector',
     data: function() {
         return {
-          options: user_names,
+          options: userNames,
           selected: ""
        }
     }
   });
+
+  pageInitialized = true;
+}
+
+function addUser() {
+  if (!pageInitialized) {
+    return;
+  }
+
+  alert("Currently selected user: " + userSelector.selected);
 }
