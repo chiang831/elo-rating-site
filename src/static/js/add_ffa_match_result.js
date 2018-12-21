@@ -88,21 +88,44 @@ function addUser() {
 
   // Check if tournament is selected
   if (tournamentSelector.selected == null) {
-    alert("You must select a tournament first!");
+    alert("You must select a tournament!");
     return;
   }
 
   // Check if player is selected
   if (userSelector.selected == null) {
-    alert("You must select a player first!");
+    alert("You must select a player!");
     return;
   }
 
   // Check if the player is already added into the ranking
   if (playerRankingList.ranking.includes(userSelector.selected)) {
-    alert("Player " + userSelector.selected + " is already added!");
+    alert("Player " + userSelector.selected + " is already in ranking list!");
     return;
   }
 
   playerRankingList.ranking.push(userSelector.selected);
+}
+
+function submitRanking() {
+  if (!pageInitialized) {
+    return;
+  }
+
+  var matchResult = {
+    tournament: tournamentSelector.selected,
+    ranking: playerRankingList.ranking
+  };
+
+  if (matchResult.ranking.length < 2) {
+    alert("At least 2 players are required in a FFA ranking!");
+    return;
+  }
+
+  httpPostJsonAsync(
+    location.origin + "/submit_ffa_match_result",
+    matchResult,
+    function (responseText) {
+      alert(responseText);
+    });
 }

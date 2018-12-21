@@ -23,13 +23,14 @@
     <v-select id="tournament_selector" v-model="selected" :options="options"></v-select>
     <h2>Select next user to add:</h2>
     <v-select id="user_selector" v-model="selected" :options="options"></v-select>
-    <button class="btn-success" onclick="addUser()">Add</button>
+    <button class="btn-success" onclick="addUser()">Add Player</button>
     <h2>Player Ranking</h2>
     <div id="ranking">
       <h3 v-for="player in ranking">
         {{ player }}
       </h3>
     </div>
+    <button class="btn-success" onclick="submitRanking()">Submit Ranking</button>
   </div>
 </body>
 

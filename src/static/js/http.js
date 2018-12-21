@@ -23,5 +23,7 @@ function httpPostJsonAsync(url, jsonObject, callback) {
     }
     xmlhttp.open("POST", url, true);  // true for asynchronous
     xmlhttp.setRequestHeader("Content-Type", "application/json");
-    xmlhttp.send(JSON.stringify(jsonObject));
+
+    var jsonString = (jsonObject == null) ? null : JSON.stringify(jsonObject);
+    xmlhttp.send(jsonString);
 }
