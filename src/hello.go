@@ -32,6 +32,8 @@ func init() {
 	http.HandleFunc("/submit_match_result", submitMatchResult)
 	http.HandleFunc("/submit_badge", submitBadge)
 	http.HandleFunc("/submit_user_badge", submitUserBadge)
+	http.HandleFunc("/submit_tournament", submitTournament)
+
 	// Requests
 	http.HandleFunc("/request_users", requestUsers)
 	http.HandleFunc("/request_latest_match", requestLatestMatch)
