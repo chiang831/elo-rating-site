@@ -10,18 +10,17 @@
   <link type="text/css" rel="stylesheet" href="/static/styles.css">
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width">
+  <script src="/static/js/http.js" async=true></script>
+  <script src="/static/js/add_ffa_match_result.js" async=true></script>
 </head>
 
 <body onload="onLoad()">
-  <h4>
-    <div class="alert alert-success" , id="message" , style="display:none"></div>
-  </h4>
-  <form action="/submit_match_result" method="post">
+  <form action="/submit_ffa_match_result" method="post" onsubmit="onSubmit()">
     <h1>Add a Match Result</h1>
-    <div id="winner_select" class="container-fluid" style="width:80%; text-align:left">
-      <h2 class="page-header">Winner</h2>
-      <h3 id="winner_rating"></h3>
-      <v-select ref="vselect" v-model="selected" :options="names" :on-change="selectedChanged"></v-select>
+    <div id="rank_1" class="container-fluid" style="width:80%; text-align:left">
+      <h2 class="page-header">1st place</h2>
+      <h3 id="rank1_rating"></h3>
+      <v-select ref="vselect" v-model="selected" :options="names" :on-change="onSelectedUserChanged"></v-select>
       <textarea name="winner" style="display:none">{{selected}}</textarea>
     </div>
     <h3 class="Prob">Expected Win Probability: <span class="ProbNumber" id=exp_win_prob></span></h3>
@@ -29,7 +28,7 @@
     <div id="loser_select" class="container-fluid" style="width:80%; text-align:left">
       <h2 class="page-header">Loser</h2>
       <h3 id="loser_rating"></h3>
-      <v-select ref="vselect" v-model="selected" :options="names" :on-change="selectedChanged"></v-select>
+      <v-select ref="vselect" v-model="selected" :options="names" :on-change="onSelectedUserChanged"></v-select>
       <textarea name="loser" style="display:none">{{selected}}</textarea>
     </div>
     <div>
@@ -46,7 +45,6 @@
       <button type="submit" class="btn-success">Go Back</button>
     </h2>
   </form>
-  <script src="/static/js/add_match_result.js"></script>
 </body>
 
 </html>
