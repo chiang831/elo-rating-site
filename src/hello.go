@@ -23,6 +23,7 @@ func init() {
 	// Child pages
 	http.HandleFunc("/admin", admin)
 	http.HandleFunc("/add_user", addUser)
+	http.HandleFunc("/add_tournament", addTournament)
 	http.HandleFunc("/add_match_result", addMatchResult)
 	http.HandleFunc("/profile", profile)
 	// Submit data
