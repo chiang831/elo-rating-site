@@ -35,7 +35,7 @@ func submitFfaMatchResult(w http.ResponseWriter, req *http.Request) {
 
 	log.Printf("matchResult: %+v\n", matchResult)
 
-	err = validateTournamentName(ctx, matchResult.tournament)
+	err = validateTournamentName(ctx, matchResult.Tournament)
 
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -47,8 +47,8 @@ func submitFfaMatchResult(w http.ResponseWriter, req *http.Request) {
 
 	// Currently this is dummy code to verify json parsing only
 	// TODO: Change to real implementation
-	io.WriteString(w, fmt.Sprintf("Tournament name: %s\n", matchResult.tournament))
-	for _, playerName := range matchResult.ranking {
+	io.WriteString(w, fmt.Sprintf("Tournament name: %s\n", matchResult.Tournament))
+	for _, playerName := range matchResult.Ranking {
 		io.WriteString(w, fmt.Sprintf("player: %s\n", playerName))
 	}
 }
