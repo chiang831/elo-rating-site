@@ -15,26 +15,22 @@
 </head>
 
 <body onload="onLoad()">
-  <form action="/submit_ffa_match_result" method="post" onsubmit="onSubmit()">
-    <h1>Add a Match Result</h1>
-    <div class="container-fluid" style="width:80%; text-align:left">
-      <h2>Select a Tournament:</h2>
-      <v-select id="tournament_selector" v-model="selected" :options="options" :on-change="onChange"></v-select>
-    </div>
-    <div class="container-fluid" style="width:80%; text-align:left">
-      <h2>Select next user to add:</h2>
-      <v-select id="user_selector" v-model="selected" :options="options"></v-select>
-      <button class="btn-success" onclick="addUser()">Add</button>
-    </div>
-    <div class="container-fluid" style="width:80%; text-align:left">
-      <h2>Player Ranking</h2>
-      <div id="ranking">
-        <h3 v-for="player in ranking">
-          {{ player }}
-        </h3>
-      </div>
-    </div>
+  <h1>Add a Match Result</h1>
 
+  <!--Container is hidden by display:none at the beginning, and will only be shown when initialized-->
+  <div id="container" class="container-fluid" style="width:80%; text-align:left; display:none;">
+    <h2>Select a Tournament:</h2>
+    <v-select id="tournament_selector" v-model="selected" :options="options" :on-change="onChange"></v-select>
+    <h2>Select next user to add:</h2>
+    <v-select id="user_selector" v-model="selected" :options="options"></v-select>
+    <button class="btn-success" onclick="addUser()">Add</button>
+    <h2>Player Ranking</h2>
+    <div id="ranking">
+      <h3 v-for="player in ranking">
+        {{ player }}
+      </h3>
+    </div>
+  </div>
 </body>
 
 </html>

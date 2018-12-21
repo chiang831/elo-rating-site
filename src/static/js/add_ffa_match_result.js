@@ -83,6 +83,7 @@ function initializePage() {
     }
   })
 
+  document.getElementById('container').style.display = 'block';
   pageInitialized = true;
 }
 
