@@ -17,34 +17,15 @@
 <body onload="onLoad()">
   <form action="/submit_ffa_match_result" method="post" onsubmit="onSubmit()">
     <h1>Add a Match Result</h1>
-    <div id="rank_1" class="container-fluid" style="width:80%; text-align:left">
-      <h2 class="page-header">1st place</h2>
-      <h3 id="rank1_rating"></h3>
-      <v-select ref="vselect" v-model="selected" :options="names" :on-change="onSelectedUserChanged"></v-select>
-      <textarea name="winner" style="display:none">{{selected}}</textarea>
+    <div class="container-fluid" style="width:80%; text-align:left">
+      <h3>Select a Tournament:</h3>
+      <v-select id="tournament_selector" v-model="selected" :options="options" :on-change="onChange"></v-select>
     </div>
-    <h3 class="Prob">Expected Win Probability: <span class="ProbNumber" id=exp_win_prob></span></h3>
-    <h3><button type="button" onclick="switchSelected()" class="btn-success">Switch</button></h3>
-    <div id="loser_select" class="container-fluid" style="width:80%; text-align:left">
-      <h2 class="page-header">Loser</h2>
-      <h3 id="loser_rating"></h3>
-      <v-select ref="vselect" v-model="selected" :options="names" :on-change="onSelectedUserChanged"></v-select>
-      <textarea name="loser" style="display:none">{{selected}}</textarea>
+    <div class="container-fluid" style="width:80%; text-align:left">
+      <h2 class="page-header">Select User</h2>
+      <v-select id="user_selector" v-model="selected" :options="options"></v-select>
     </div>
-    <div>
-      <h2>Result / Note
-        <p><textarea name="note" rows="2" cols="20"></textarea></p>
-      </h2>
-    </div>
-    <h2>
-      <button type="submit" class="btn-success">Confirm</button>
-    </h2>
-  </form>
-  <form action="/">
-    <h2>
-      <button type="submit" class="btn-success">Go Back</button>
-    </h2>
-  </form>
+
 </body>
 
 </html>

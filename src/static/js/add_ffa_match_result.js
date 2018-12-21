@@ -1,12 +1,12 @@
 Vue.component('v-select', VueSelect.VueSelect);
 
-var v_w = null;
-var v_l = null;
-var vue_created = false;
 var users = null;
 var user_names = null;
+var user_selector = null;
+
 var tournaments = null;
 var tournament_names = null;
+var tournament_selector = null;
 
 function onLoad() {
   requestUsers();
@@ -46,104 +46,29 @@ function initializePage() {
     return;
   }
 
+  tournament_selector = new Vue({
+    el: '#tournament_selector',
+    data: function() {
+      return {
+        options: tournaments_names,
+        selected: ""
+      }
+    },
+
+    methods: {
+      onChange: function(value) {
+        console.log("Tournament " + value + "is selected")
+      }
+    }
+  })
+
   v_w = new Vue({
-    el: '#winner_select',
+    el: '#user_selector',
     data: function() {
         return {
           names: user_names,
           selected: ""
        }
-    },
-
-    methods: {
-      selectedChanged : function (value) {
-        this.selected = value;
-        updateCalculator();
-      }
     }
   });
-
-  v_l = new Vue({
-    el: '#loser_select',
-    data: function() {
-        return {
-          names: user_names,
-          selected: ""
-       }
-    },
-
-    methods: {
-      selectedChanged : function (value) {
-        this.selected = value;
-        updateCalculator();
-      }
-    }
-  });
-  vue_created = true;
-}
-
-function switchSelected() {
-  var temp = v_w.selected;
-  v_w.selected = v_l.selected;
-  v_l.selected = temp;
-}
-
-function updateCalculator() {
-  // Names selected can be null or "". Ignore such cases.
-  // Default: "". Cleared: null.
-  if (!v_w.selected || !v_l.selected) {
-    winner_rating_elem = document.getElementById("winner_rating");
-    loser_rating_elem = document.getElementById("loser_rating");
-    winner_rating_elem.innerHTML = "";
-    loser_rating_elem.innerHTML = "";
-    prob_elem = document.getElementById("exp_win_prob");
-    prob_elem.innerHTML = "";
-    return;
-  }
-
-  // Check the names.
-  console.log('winner is ' + v_w.selected);
-  console.log('loser is ' + v_l.selected);
-
-  // Find element by Name.
-  winner = users.find(elem => elem.Name == v_w.selected);
-  loser = users.find(elem => elem.Name == v_l.selected);
-
-  console.log('winner rating before matching : ' + winner.Rating);
-  console.log('loser rating before matching: ' + loser.Rating);
-
-  // Compute expected win rate.
-  expected_w = expectedScore(winner.Rating, loser.Rating);
-  console.log('expected winner win rate: ' + expected_w);
-  expected_l = 1 - expected_w;
-  console.log('expected loser win rate: ' + expected_l);
-
-  // Assume winner wins the game.
-  winner_rating_diff = diffElo(expected_w, 1.0);
-
-  // Assume loser loses the game.
-  loser_rating_diff = diffElo(expected_l, 0.0);
-
-  console.log('winner rating diff after matching : ' + Math.round(winner_rating_diff));
-  console.log('loser rating diff after matching: ' + Math.round(loser_rating_diff));
-
-  winner_rating_elem = document.getElementById("winner_rating");
-  loser_rating_elem = document.getElementById("loser_rating");
-  winner_rating_elem.innerHTML = winner.Name + " (" + Math.round(winner.Rating) +
-    " <font color=\"green\">" + " + " + Math.round(winner_rating_diff) + " </font> ) ";
-  loser_rating_elem.innerHTML = loser.Name + " (" + Math.round(loser.Rating) +
-    " <font color=\"red\">" + " - " + Math.abs(Math.round(loser_rating_diff)) + " </font> ) ";
-  prob_elem = document.getElementById("exp_win_prob");
-  console.log('prob_elem = ' + prob_elem);
-  prob_elem.innerHTML = (expected_w * 100).toFixed(1) + '%';
-}
-
-// Expected score of elo_a in a match against elo_b
-function expectedScore(elo_a, elo_b) {
-  return 1 / (1 + Math.pow(10, (elo_b - elo_a) / 400.0));
-}
-
-// Get the diff Elo rating.
-function diffElo(expected, score) {
-  return 32.0 * (score - expected);
 }
