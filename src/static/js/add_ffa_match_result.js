@@ -79,7 +79,7 @@ function initializePage() {
   playerRankingList = new Vue({
     el: '#ranking',
     data: {
-      ranking =[]
+      ranking: []
     }
   })
 
