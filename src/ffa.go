@@ -10,19 +10,12 @@ import (
 	"path"
 	"sort"
 
+	"golang.org/x/net/context"
 	"google.golang.org/appengine"
 )
 
 func showAddFfaMatchResult(w http.ResponseWriter, r *http.Request) {
 	http.ServeFile(w, r, path.Join("static", "add_ffa_match_result.html"))
-}
-
-// FfaMatchResult represents an FFA game match result, which will be in json
-// format within the http post request this should match the format in
-// add_ffa_match_result.js
-type FfaMatchResult struct {
-	Tournament string
-	Ranking    []string // player name from first place to last place
 }
 
 // MathcResult1v1 represents a match result between two players
@@ -109,6 +102,14 @@ func Generate1v1MatchResults(numPlayers int) []MathcResult1v1 {
 	return results
 }
 
+// FfaMatchResult represents an FFA game match result, which will be in json
+// format within the http post request this should match the format in
+// add_ffa_match_result.js
+type FfaMatchResult struct {
+	Tournament string
+	Ranking    []string // player name from first place to last place
+}
+
 func submitFfaMatchResult(w http.ResponseWriter, req *http.Request) {
 	ctx := appengine.NewContext(req)
 
@@ -122,7 +123,7 @@ func submitFfaMatchResult(w http.ResponseWriter, req *http.Request) {
 
 	log.Printf("matchResult: %+v\n", matchResult)
 
-	err = validateTournamentName(ctx, matchResult.Tournament)
+	readOrCreateUserTournamentStats(ctx, matchResult.Tournament, matchResult.Ranking)
 
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -136,4 +137,43 @@ func submitFfaMatchResult(w http.ResponseWriter, req *http.Request) {
 	for _, playerName := range matchResult.Ranking {
 		io.WriteString(w, fmt.Sprintf("player: %s\n", playerName))
 	}
+}
+
+// readOrCreateUserTournamentStats will try to read users' stats for a given
+// tournament, if the specified user have no record in the specified tournament,
+// a new record with default values will be created.
+func readOrCreateUserTournamentStats(
+	ctx context.Context,
+	tournamentName string,
+	userNames []string) ([]UserTournamentStats, error) {
+
+	exist, tournamentKey, _, err := findExistingTournament(ctx, tournamentName)
+
+	if err != nil {
+		return nil, err
+	}
+
+	if !exist {
+		return nil, fmt.Errorf("tournament %s does not exist", tournamentName)
+	}
+
+	userKeys, err := findUserKeys(ctx, userNames)
+
+	if err != nil {
+		return nil, err
+	}
+
+	userStats := make([]UserTournamentStats, len(userNames))
+
+	// Read user stats or create initial values
+	for i, userKey := range userKeys {
+		userStats[i], err = readOrCreateStatsWithID(ctx, tournamentKey.IntID(), userKey.IntID())
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	// TODO: Actually manipulate the elo ratings
+
+	return nil, nil
 }
