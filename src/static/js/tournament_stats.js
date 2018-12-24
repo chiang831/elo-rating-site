@@ -14,7 +14,7 @@ function getTournamentName() {
 }
 
 function getLeaderboard(tournament) {
-  httpGetAsync(location.origin + "/request_user_profiles?tournament=" + tournament, fillInLeaderboard);
+  httpGetAsync(location.origin + "/request_tournament_stats?tournament=" + tournament, fillInLeaderboard);
 }
 
 function getDetailMatchResult(tournament) {
@@ -38,6 +38,7 @@ function fillInLeaderboard(r) {
   var content = "<tr>" +
     "<th>Player</th>" +
     "<th><a href=\"https://en.wikipedia.org/wiki/Elo_rating_system\">ELO Rating</a></th>" +
+    "<th>FFA Wins</th>" +
     "<th>Wins</th>" +
     "<th>Losses</th>" +
     "<th>Badges</th>" +
@@ -52,6 +53,7 @@ function fillInLeaderboard(r) {
     var row = "<tr>" +
       "<td><a href=\"/profile?user=" + user.Name + "\">" + user.Name + "</a></td>" +
       "<td>" + Math.round(user.Rating) + "</td>" +
+      "<td>" + user.FFAWins + "</td>" +
       "<td>" + user.Wins + "</td>" +
       "<td>" + user.Losses + "</td>" +
       "<td>" + badge_imgs + "</td>" +

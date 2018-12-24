@@ -42,6 +42,7 @@ func init() {
 	http.HandleFunc("/request_users", requestUsers)
 	http.HandleFunc("/request_latest_match", requestLatestMatch)
 	http.HandleFunc("/request_user_profiles", requestUserProfiles)
+	http.HandleFunc("/request_tournament_stats", requestTournamentStats)
 	http.HandleFunc("/request_detail_results", requestDetailMatchResults)
 	http.HandleFunc("/request_greetings", requestGreetings)
 	http.HandleFunc("/request_recent_matches", requestRecentMatches)

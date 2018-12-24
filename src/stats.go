@@ -1,9 +1,12 @@
 package guestbook
 
 import (
+	"encoding/json"
 	"fmt"
+	"net/http"
 
 	"golang.org/x/net/context"
+	"google.golang.org/appengine"
 	"google.golang.org/appengine/datastore"
 )
 
@@ -119,4 +122,60 @@ func readOrCreateStatsWithID(ctx context.Context, tournamentID int64, userID int
 	}
 
 	return key, stats, nil
+}
+
+func requestTournamentStats(w http.ResponseWriter, r *http.Request) {
+	ctx := appengine.NewContext(r)
+
+	tournamentName := r.FormValue("tournament")
+	if tournamentName == "" {
+		http.Error(w, "tournament parameter is missing", http.StatusBadRequest)
+		return
+	}
+
+	tournamentKey, err := findExistingTournamentKey(ctx, tournamentName)
+
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	// Get users
+	queryUser := datastore.NewQuery("UserTournamentStats").Ancestor(guestbookKey(ctx)).
+		Filter("TournamentID = ", tournamentKey.IntID).
+		Order("-Rating")
+	var statsList []UserTournamentStats
+	if _, err := queryUser.GetAll(ctx, &statsList); err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	// Create public user profile
+	userProfileToShows := make([]UserProfileToShow, len(statsList))
+	for i, stats := range statsList {
+		profile, err := readUserProfile(ctx, stats.UserID)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+
+		// Get badges
+		userProfileToShows[i] = UserProfileToShow{
+			Name:    profile.Name,
+			Rating:  stats.Rating,
+			FFAWins: stats.FFAWins,
+			Wins:    stats.Wins,
+			Losses:  stats.Losses,
+			Badges:  getUserBadges(ctx, profile.Name),
+		}
+	}
+
+	js, errJs := json.Marshal(userProfileToShows)
+	if errJs != nil {
+		http.Error(w, errJs.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.Write(js)
 }

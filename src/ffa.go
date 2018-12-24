@@ -195,14 +195,10 @@ func readOrCreateUserTournamentStats(
 	tournamentName string,
 	userNames []string) ([]*datastore.Key, []UserTournamentStats, error) {
 
-	exist, tournamentKey, _, err := findExistingTournament(ctx, tournamentName)
+	tournamentKey, err := findExistingTournamentKey(ctx, tournamentName)
 
 	if err != nil {
 		return nil, nil, err
-	}
-
-	if !exist {
-		return nil, nil, fmt.Errorf("tournament %s does not exist", tournamentName)
 	}
 
 	userKeys, err := findUserKeys(ctx, userNames)

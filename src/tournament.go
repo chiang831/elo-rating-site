@@ -3,6 +3,7 @@ package guestbook
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 	"net/http"
 	"path"
 	"regexp"
@@ -73,17 +74,31 @@ func submitTournament(w http.ResponseWriter, r *http.Request) {
 	return
 }
 
-func findExistingTournament(c context.Context, name string) (bool, datastore.Key, Tournament, error) {
+func findExistingTournament(c context.Context, name string) (bool, *datastore.Key, Tournament, error) {
 	q := datastore.NewQuery("Tournament").Ancestor(guestbookKey(c)).Filter("Name =", name).Limit(1)
 	var tournaments []Tournament
 	keys, err := q.GetAll(c, &tournaments)
 	if err != nil {
-		return false, datastore.Key{}, Tournament{}, err
+		return false, nil, Tournament{}, err
 	}
 	if len(tournaments) != 0 {
-		return true, *keys[0], tournaments[0], nil
+		return true, keys[0], tournaments[0], nil
 	}
-	return false, datastore.Key{}, Tournament{}, nil
+	return false, nil, Tournament{}, nil
+}
+
+func findExistingTournamentKey(ctx context.Context, tournamentName string) (*datastore.Key, error) {
+	exist, tournamentKey, _, err := findExistingTournament(ctx, tournamentName)
+
+	if err != nil {
+		return nil, err
+	}
+
+	if !exist {
+		return nil, fmt.Errorf("tournament %s does not exist", tournamentName)
+	}
+
+	return tournamentKey, nil
 }
 
 func readTournaments(ctx context.Context) ([]Tournament, error) {
