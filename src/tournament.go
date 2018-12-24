@@ -3,7 +3,6 @@ package guestbook
 import (
 	"encoding/json"
 	"errors"
-	"log"
 	"net/http"
 	"path"
 	"regexp"
@@ -25,13 +24,7 @@ func showTournamentStats(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "URL must be in the form of /tournament/<name>", http.StatusBadRequest)
 		return
 	}
-
-	// Path will be spli into [0]/[1]/[2], [0] = "", [1] = "tournament"
-	tornamentName := tokens[2]
-
-	log.Printf("Recived request to show tornament %s", tornamentName)
-
-	http.ServeFile(w, r, path.Join("static", "tournaments.html"))
+	http.ServeFile(w, r, path.Join("static", "tournament_stats.html"))
 }
 
 // [START submit_tournament]
