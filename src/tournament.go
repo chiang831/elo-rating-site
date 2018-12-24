@@ -3,9 +3,11 @@ package guestbook
 import (
 	"encoding/json"
 	"errors"
+	"log"
 	"net/http"
 	"path"
 	"regexp"
+	"strings"
 
 	"golang.org/x/net/context"
 	"google.golang.org/appengine"
@@ -13,6 +15,20 @@ import (
 )
 
 func showTournaments(w http.ResponseWriter, r *http.Request) {
+	http.ServeFile(w, r, path.Join("static", "tournaments.html"))
+}
+
+func showTournamentStats(w http.ResponseWriter, r *http.Request) {
+	tokens := strings.Split(r.URL.Path, "/")
+
+	if len(tokens) != 2 {
+		http.Error(w, "URL must be in the form of /tournament/<name>", http.StatusBadRequest)
+	}
+
+	tornamentName := tokens[1]
+
+	log.Printf("Recived request to show tornament %s", tornamentName)
+
 	http.ServeFile(w, r, path.Join("static", "tournaments.html"))
 }
 
