@@ -299,8 +299,14 @@ func requestDetailMatchResults(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
+
+	tournamentName := r.FormValue("tournament")
+	if tournamentName == "" {
+		tournamentName = "Default"
+	}
+
 	// Get matches
-	queryMatch := datastore.NewQuery("Match").Ancestor(guestbookKey(c))
+	queryMatch := datastore.NewQuery("Match").Ancestor(guestbookKey(c)).Filter("Tournament =", tournamentName)
 	var matches []Match
 	if _, err := queryMatch.GetAll(c, &matches); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
