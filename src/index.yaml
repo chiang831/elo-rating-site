@@ -29,6 +29,5 @@ indexes:
   ancestor: yes
   properties:
   - name: TournamentID
-  - name: UserID
   - name: Rating
     direction: desc
