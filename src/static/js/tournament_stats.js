@@ -1,10 +1,12 @@
+var tournament;
+
 function onLoad() {
-  var tournament = getTournamentName();
+  tournament = getTournamentName();
   document.title = tournament + " tournament stats"
 
-  getLeaderboard(tournament);
-  getDetailMatchResult(tournament);
-  getRecentMatches(tournament);
+  getLeaderboard();
+  getDetailMatchResult();
+  getRecentMatches();
   getGreetings();
 }
 
@@ -13,15 +15,15 @@ function getTournamentName() {
   return tokens[tokens.length - 1];
 }
 
-function getLeaderboard(tournament) {
+function getLeaderboard() {
   httpGetAsync(location.origin + "/request_tournament_stats?tournament=" + tournament, fillInLeaderboard);
 }
 
-function getDetailMatchResult(tournament) {
+function getDetailMatchResult() {
   httpGetAsync(location.origin + "/request_detail_results?tournament=" + tournament, fillInDetailMatchResult);
 }
 
-function getRecentMatches(tournament) {
+function getRecentMatches() {
   var num_matches = document.getElementById("num_matches").value;
   var path = location.origin + "/request_recent_matches?num=" + num_matches + "&tournament=" + tournament
   httpGetAsync(path, fillInRecentMatches);
