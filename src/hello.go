@@ -403,17 +403,25 @@ func requestRecentMatches(w http.ResponseWriter, r *http.Request) {
 	// Get number of matches to retrieve
 	// If the number is not a positive integer, return nil
 	limit := -1
-	keys, ok := r.URL.Query()["num"]
-	if ok && len(keys) == 1 {
-		newLimit, err := strconv.Atoi(keys[0])
+	limitParam := r.FormValue("num")
+	if limitParam != "" {
+		newLimit, err := strconv.Atoi(limitParam)
 		if err == nil && newLimit > 0 {
 			limit = newLimit
 		}
 	}
 
+	tournament := r.FormValue("tournament")
+	if tournament == "" {
+		tournament = "Default"
+	}
+
 	matchWithKeys := []MatchWithKey{}
 	if limit != -1 {
-		queryMatch := datastore.NewQuery("Match").Ancestor(guestbookKey(c)).Order("-Date").Limit(limit)
+		queryMatch := datastore.NewQuery("Match").Ancestor(guestbookKey(c)).
+			Filter("Tournament = ", tournament).
+			Order("-Date").
+			Limit(limit)
 		var matches []Match
 		keyMatches, err := queryMatch.GetAll(c, &matches)
 		if err != nil {
