@@ -293,27 +293,44 @@ func requestUserProfiles(w http.ResponseWriter, r *http.Request) {
 }
 
 func requestDetailMatchResults(w http.ResponseWriter, r *http.Request) {
-	c := appengine.NewContext(r)
-	// Get users
-	queryUser := datastore.NewQuery("UserProfile").Ancestor(guestbookKey(c)).Order("-Rating")
-	var users []UserProfile
-	if _, err := queryUser.GetAll(c, &users); err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
+	ctx := appengine.NewContext(r)
 
 	tournamentName := r.FormValue("tournament")
 	if tournamentName == "" {
 		tournamentName = "Default"
 	}
 
+	tournamentKey, err := findExistingTournamentKey(ctx, tournamentName)
+
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	// Get user tournament stats
+	statsList, err := readAllUserStatsForTournament(ctx, tournamentKey.IntID())
+	if err != nil {
+		http.Error(w, "Failed to read tournament stats: "+err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	users := make([]UserProfile, len(statsList))
+	for i, stats := range statsList {
+		users[i], err = readUserProfile(ctx, stats.UserID)
+		if err != nil {
+			http.Error(w, "Failed to read user profile: "+err.Error(), http.StatusInternalServerError)
+			return
+		}
+	}
+
 	// Get matches
-	queryMatch := datastore.NewQuery("Match").Ancestor(guestbookKey(c)).Filter("Tournament =", tournamentName)
+	queryMatch := datastore.NewQuery("Match").Ancestor(guestbookKey(ctx)).Filter("Tournament =", tournamentName)
 	var matches []Match
-	if _, err := queryMatch.GetAll(c, &matches); err != nil {
+	if _, err := queryMatch.GetAll(ctx, &matches); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
+
 	// Name to index map
 	mp := make(map[string]int)
 	for i, u := range users {
