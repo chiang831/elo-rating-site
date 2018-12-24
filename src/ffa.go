@@ -131,9 +131,8 @@ func submitFfaMatchResult(w http.ResponseWriter, req *http.Request) {
 
 	// Create match entry
 	submitter := user.Current(ctx).String()
-	currentTime := time.Now()
 	note := fmt.Sprintf(
-		"emulated result from FFA game of ranking: [%s]",
+		"FFA game ranking: [%s]",
 		strings.Join(matchResult.Ranking, ", "))
 
 	// Do all updates within a transaction
@@ -148,7 +147,7 @@ func submitFfaMatchResult(w http.ResponseWriter, req *http.Request) {
 			match := createMatch(
 				winner.Rating, loser.Rating,
 				winnerName, loserName,
-				matchResult.Tournament, submitter, note, currentTime)
+				matchResult.Tournament, submitter, note, time.Now())
 
 			// Update wins, losses, and rating
 			winner.Wins++
