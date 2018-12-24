@@ -150,7 +150,10 @@ func submitFfaMatchResult(w http.ResponseWriter, req *http.Request) {
 				winnerName, loserName,
 				matchResult.Tournament, submitter, note, currentTime)
 
+			// Update wins, losses, and rating
+			winner.Wins++
 			winner.Rating = match.WinnerRatingAfter
+			loser.Losses++
 			loser.Rating = match.LoserRatingAfter
 
 			// Insert match entry
@@ -160,6 +163,9 @@ func submitFfaMatchResult(w http.ResponseWriter, req *http.Request) {
 				return err
 			}
 		}
+
+		// First player should get ++ for FFA Win
+		userStats[0].FFAWins++
 
 		// Now update user stats for each user
 		for i, statsKey := range userStatsKeys {
