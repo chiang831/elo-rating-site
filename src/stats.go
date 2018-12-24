@@ -124,6 +124,18 @@ func readOrCreateStatsWithID(ctx context.Context, tournamentID int64, userID int
 	return key, stats, nil
 }
 
+func readAllUserStatsForTournament(ctx context.Context, tournamentID int64) ([]UserTournamentStats, error) {
+	query := datastore.NewQuery("UserTournamentStats").Ancestor(guestbookKey(ctx)).
+		Filter("TournamentID = ", tournamentID).
+		Order("-Rating")
+	var statsList []UserTournamentStats
+	if _, err := query.GetAll(ctx, &statsList); err != nil {
+		return nil, err
+	}
+
+	return statsList, nil
+}
+
 func requestTournamentStats(w http.ResponseWriter, r *http.Request) {
 	ctx := appengine.NewContext(r)
 
@@ -140,12 +152,9 @@ func requestTournamentStats(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Get users
-	queryUser := datastore.NewQuery("UserTournamentStats").Ancestor(guestbookKey(ctx)).
-		Filter("TournamentID = ", tournamentKey.IntID()).
-		Order("-Rating")
-	var statsList []UserTournamentStats
-	if _, err := queryUser.GetAll(ctx, &statsList); err != nil {
+	// Get user tournament stats
+	statsList, err := readAllUserStatsForTournament(ctx, tournamentKey.IntID())
+	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
