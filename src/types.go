@@ -4,12 +4,14 @@ import (
 	"time"
 )
 
+// Greeting message to show in the home page
 type Greeting struct {
 	Author  string
 	Content string
 	Date    time.Time
 }
 
+// Match wrapper struct for datastore
 type Match struct {
 	Tournament         string
 	Submitter          string
@@ -24,11 +26,13 @@ type Match struct {
 	Date               time.Time
 }
 
+// MatchWithKey wrapper struct for datastore
 type MatchWithKey struct {
 	Match Match
 	Key   string
 }
 
+// UserProfile wrapper for datastore
 type UserProfile struct {
 	Tournament string
 	Name       string
@@ -38,6 +42,7 @@ type UserProfile struct {
 	JoinDate   time.Time
 }
 
+// UserProfileToShow wrapper for datastore
 type UserProfileToShow struct {
 	Name   string
 	Rating float64
@@ -46,17 +51,20 @@ type UserProfileToShow struct {
 	Badges []Badge
 }
 
+// DetailMatchResultEntry wrapper for datastore
 type DetailMatchResultEntry struct {
 	Wins   int
 	Losses int
 	Color  string
 }
 
+// MatchData wrapper for datastore
 type MatchData struct {
 	Usernames   []string
 	ResultTable [][]DetailMatchResultEntry
 }
 
+// Badge wrapper for datastore
 type Badge struct {
 	Name        string
 	Description string
@@ -64,6 +72,7 @@ type Badge struct {
 	Path        string
 }
 
+// UserBadge wrapper for datastore
 type UserBadge struct {
 	User       string
 	BadgeNames []string
