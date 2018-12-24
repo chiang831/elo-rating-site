@@ -123,7 +123,7 @@ func submitFfaMatchResult(w http.ResponseWriter, req *http.Request) {
 
 	log.Printf("matchResult: %+v\n", matchResult)
 
-	readOrCreateUserTournamentStats(ctx, matchResult.Tournament, matchResult.Ranking)
+	_, err = readOrCreateUserTournamentStats(ctx, matchResult.Tournament, matchResult.Ranking)
 
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
