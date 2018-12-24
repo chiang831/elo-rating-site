@@ -21,11 +21,13 @@ func showTournaments(w http.ResponseWriter, r *http.Request) {
 func showTournamentStats(w http.ResponseWriter, r *http.Request) {
 	tokens := strings.Split(r.URL.Path, "/")
 
-	if len(tokens) != 2 {
+	if len(tokens) != 3 {
 		http.Error(w, "URL must be in the form of /tournament/<name>", http.StatusBadRequest)
+		return
 	}
 
-	tornamentName := tokens[1]
+	// Path will be spli into [0]/[1]/[2], [0] = "", [1] = "tournament"
+	tornamentName := tokens[2]
 
 	log.Printf("Recived request to show tornament %s", tornamentName)
 
