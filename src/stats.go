@@ -107,7 +107,7 @@ func readOrCreateStatsWithID(ctx context.Context, tournamentID int64, userID int
 			Rating:       InitialRating,
 		}
 
-		_, putErr := datastore.Put(ctx, key, stats)
+		_, putErr := datastore.Put(ctx, key, &stats)
 
 		return putErr
 	}, nil)
