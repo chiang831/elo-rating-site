@@ -62,7 +62,10 @@ func submitMatchResult(w http.ResponseWriter, r *http.Request) {
 	submitter := user.Current(c).String()
 	note := r.FormValue("note")
 	date := time.Now()
-	match := createMatch(winner, loser, tournament, submitter, note, date)
+	match := createMatch(
+		winner.Rating, loser.Rating,
+		winner.Name, loser.Name,
+		tournament, submitter, note, date)
 
 	// Insert match entry
 	key := datastore.NewIncompleteKey(c, "Match", guestbookKey(c))
@@ -108,24 +111,24 @@ func submitMatchResult(w http.ResponseWriter, r *http.Request) {
 	http.Redirect(w, r, "/add_match_result", http.StatusFound)
 }
 
-// Create a match for two players
-func createMatch(winner UserProfile, loser UserProfile, tournament string, submitter string, note string, date time.Time) Match {
-	oldRatingW := winner.Rating
-	oldRatingL := loser.Rating
-
+// Create a match for two players in default tournament
+func createMatch(
+	winnerOldRating float64, loserOldRating float64,
+	winnerName string, loserName string,
+	tournament string, submitter string, note string, date time.Time) Match {
 	//Get new ELO value
-	newRatingW, newRatingL := newRatings(oldRatingW, oldRatingL)
+	winnerNewRating, loserNewRating := newRatings(winnerOldRating, loserOldRating)
 
 	match := Match{
 		Tournament:         tournament,
 		Submitter:          submitter,
-		Winner:             winner.Name,
-		Loser:              loser.Name,
-		WinnerRatingBefore: oldRatingW,
-		WinnerRatingAfter:  newRatingW,
-		LoserRatingBefore:  oldRatingL,
-		LoserRatingAfter:   newRatingL,
-		Expected:           oldRatingW >= oldRatingL,
+		Winner:             winnerName,
+		Loser:              loserName,
+		WinnerRatingBefore: winnerOldRating,
+		WinnerRatingAfter:  winnerNewRating,
+		LoserRatingBefore:  loserOldRating,
+		LoserRatingAfter:   loserNewRating,
+		Expected:           winnerOldRating >= loserOldRating,
 		Note:               note,
 		Date:               date,
 	}
@@ -136,10 +139,10 @@ func createMatch(winner UserProfile, loser UserProfile, tournament string, submi
 func newRatings(oldRatingW, oldRatingL float64) (float64, float64) {
 	//Get new ELO value
 	expectedScoreW := expectedScore(oldRatingW, oldRatingL)
-	newRatingW := newElo(oldRatingW, expectedScoreW, 1.0)
+	winnerNewRating := newElo(oldRatingW, expectedScoreW, 1.0)
 	expectedScoreL := expectedScore(oldRatingL, oldRatingW)
-	newRatingL := newElo(oldRatingL, expectedScoreL, 0.0)
-	return newRatingW, newRatingL
+	loserNewRating := newElo(oldRatingL, expectedScoreL, 0.0)
+	return winnerNewRating, loserNewRating
 }
 
 // Expected score of elo_a in a match against elo_b

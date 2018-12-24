@@ -9,9 +9,13 @@ import (
 	"net/http"
 	"path"
 	"sort"
+	"strings"
+	"time"
 
 	"golang.org/x/net/context"
 	"google.golang.org/appengine"
+	"google.golang.org/appengine/datastore"
+	"google.golang.org/appengine/user"
 )
 
 func showAddFfaMatchResult(w http.ResponseWriter, r *http.Request) {
@@ -123,16 +127,61 @@ func submitFfaMatchResult(w http.ResponseWriter, req *http.Request) {
 
 	log.Printf("matchResult: %+v\n", matchResult)
 
-	_, err = readOrCreateUserTournamentStats(ctx, matchResult.Tournament, matchResult.Ranking)
+	userStatsKeys, userStats, err := readOrCreateUserTournamentStats(ctx, matchResult.Tournament, matchResult.Ranking)
+
+	// Create match entry
+	submitter := user.Current(ctx).String()
+	currentTime := time.Now()
+	note := fmt.Sprintf(
+		"emulated result from FFA game of ranking: [%s]",
+		strings.Join(matchResult.Ranking, ", "))
+
+	// Do all updates within a transaction
+	err = datastore.RunInTransaction(ctx, func(ctx context.Context) error {
+		// Process all emulated 1v1 results
+		for _, generated1v1 := range Generate1v1MatchResults(len(matchResult.Ranking)) {
+			winner := &userStats[generated1v1.winner]
+			loser := &userStats[generated1v1.loser]
+			winnerName := matchResult.Ranking[generated1v1.winner]
+			loserName := matchResult.Ranking[generated1v1.loser]
+
+			match := createMatch(
+				winner.Rating, loser.Rating,
+				winnerName, loserName,
+				matchResult.Tournament, submitter, note, currentTime)
+
+			// Update wins, losses, and rating
+			winner.Wins++
+			winner.Rating = match.WinnerRatingAfter
+			loser.Losses++
+			loser.Rating = match.LoserRatingAfter
+
+			// Insert match entry
+			key := datastore.NewIncompleteKey(ctx, "Match", guestbookKey(ctx))
+			_, err = datastore.Put(ctx, key, &match)
+			if err != nil {
+				return err
+			}
+		}
+
+		// First player should get ++ for FFA Win
+		userStats[0].FFAWins++
+
+		// Now update user stats for each user
+		for i, statsKey := range userStatsKeys {
+			if _, err = datastore.Put(ctx, statsKey, &userStats[i]); err != nil {
+				return err
+			}
+		}
+
+		return nil
+	}, nil)
 
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
-	// Currently this is dummy code to verify json parsing only
-
-	// TODO: Change to real implementation
 	io.WriteString(w, fmt.Sprintf("Tournament name: %s\n", matchResult.Tournament))
 	for _, playerName := range matchResult.Ranking {
 		io.WriteString(w, fmt.Sprintf("player: %s\n", playerName))
@@ -145,35 +194,34 @@ func submitFfaMatchResult(w http.ResponseWriter, req *http.Request) {
 func readOrCreateUserTournamentStats(
 	ctx context.Context,
 	tournamentName string,
-	userNames []string) ([]UserTournamentStats, error) {
+	userNames []string) ([]*datastore.Key, []UserTournamentStats, error) {
 
 	exist, tournamentKey, _, err := findExistingTournament(ctx, tournamentName)
 
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
 	if !exist {
-		return nil, fmt.Errorf("tournament %s does not exist", tournamentName)
+		return nil, nil, fmt.Errorf("tournament %s does not exist", tournamentName)
 	}
 
 	userKeys, err := findUserKeys(ctx, userNames)
 
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
 	userStats := make([]UserTournamentStats, len(userNames))
+	userStatsKeys := make([]*datastore.Key, len(userNames))
 
 	// Read user stats or create initial values
 	for i, userKey := range userKeys {
-		userStats[i], err = readOrCreateStatsWithID(ctx, tournamentKey.IntID(), userKey.IntID())
+		userStatsKeys[i], userStats[i], err = readOrCreateStatsWithID(ctx, tournamentKey.IntID(), userKey.IntID())
 		if err != nil {
-			return nil, err
+			return nil, nil, err
 		}
 	}
 
-	// TODO: Actually manipulate the elo ratings
-
-	return nil, nil
+	return userStatsKeys, userStats, nil
 }

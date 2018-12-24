@@ -57,7 +57,10 @@ func rerunMatches(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		// Update match
-		matches[i] = createMatch(users[idxW], users[idxL], m.Tournament, m.Submitter, m.Note, m.Date)
+		matches[i] = createMatch(
+			users[idxW].Rating, users[idxL].Rating,
+			users[idxW].Name, users[idxL].Name,
+			m.Tournament, m.Submitter, m.Note, m.Date)
 		// Update user
 		users[idxW].Rating = matches[i].WinnerRatingAfter
 		users[idxW].Wins++

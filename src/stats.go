@@ -61,43 +61,45 @@ func findUserKeys(ctx context.Context, userNames []string) ([]datastore.Key, err
 // datastore ID instead of string names. The first returned value indicates
 // whether the stats exists.
 func readStatsWithID(ctx context.Context, tournamentID int64, userID int64) (
-	bool, UserTournamentStats, error) {
+	bool, *datastore.Key, UserTournamentStats, error) {
 	q := datastore.NewQuery("UserTournamentStats").Ancestor(guestbookKey(ctx)).
 		Filter("TournamentId =", tournamentID).
 		Filter("UserId =", userID).
 		Limit(1)
 	var stats []UserTournamentStats
-	_, err := q.GetAll(ctx, &stats)
+	keys, err := q.GetAll(ctx, &stats)
 	if err != nil {
-		return false, UserTournamentStats{}, err
+		return false, nil, UserTournamentStats{}, err
 	}
 	if len(stats) == 0 {
-		return false, UserTournamentStats{}, err
+		return false, nil, UserTournamentStats{}, err
 	}
-	return true, stats[0], nil
+	return false, keys[0], stats[0], nil
 }
 
+// readOrCreateStatsWithID reads user stats with given IDs, and will create a
+// new default entry if the records does not exist yet.
 func readOrCreateStatsWithID(ctx context.Context, tournamentID int64, userID int64) (
-	UserTournamentStats, error) {
-	exist, stats, err := readStatsWithID(ctx, tournamentID, userID)
+	*datastore.Key, UserTournamentStats, error) {
+	exist, key, stats, err := readStatsWithID(ctx, tournamentID, userID)
 	if err != nil {
-		return UserTournamentStats{}, err
+		return nil, UserTournamentStats{}, err
 	}
 
 	if exist {
-		return stats, nil
+		return key, stats, nil
 	}
 
 	// create a new entry within a transaction
 	err = datastore.RunInTransaction(ctx, func(ctx context.Context) error {
-		exist, stats, err = readStatsWithID(ctx, tournamentID, userID)
+		exist, key, stats, err = readStatsWithID(ctx, tournamentID, userID)
 		if exist {
 			// there are multiple queries that were trying to create this entry,
 			// and it's now created by some other thread. We can now return stats.
 			return nil
 		}
 
-		key := datastore.NewIncompleteKey(ctx, "UserTournamentStats", guestbookKey(ctx))
+		incompleteKey := datastore.NewIncompleteKey(ctx, "UserTournamentStats", guestbookKey(ctx))
 		stats = UserTournamentStats{
 			TournamentID: tournamentID,
 			UserID:       userID,
@@ -107,14 +109,14 @@ func readOrCreateStatsWithID(ctx context.Context, tournamentID int64, userID int
 			Rating:       InitialRating,
 		}
 
-		_, putErr := datastore.Put(ctx, key, &stats)
+		key, err = datastore.Put(ctx, incompleteKey, &stats)
 
-		return putErr
+		return err
 	}, nil)
 
 	if err != nil {
-		return UserTournamentStats{}, err
+		return nil, UserTournamentStats{}, err
 	}
 
-	return stats, nil
+	return key, stats, nil
 }
