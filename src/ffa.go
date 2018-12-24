@@ -180,7 +180,7 @@ func submitFfaMatchResult(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	http.Redirect(w, req, "/tournament/"+matchResult.Tournament, http.StatusFound)
+	// return nothing if successful
 }
 
 // readOrCreateUserTournamentStats will try to read users' stats for a given
