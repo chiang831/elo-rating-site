@@ -25,3 +25,14 @@ indexes:
   ancestor: yes
   properties:
   - name: User
+- kind: UserTournamentStats
+  ancestor: yes
+  properties:
+  - name: TournamentID
+  - name: Rating
+    direction: desc
+- kind: Match
+  properties:
+  - name: Tournament
+  - name: Date
+    direction: desc
