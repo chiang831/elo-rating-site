@@ -14,11 +14,11 @@ function getTournamentName() {
 }
 
 function getLeaderboard(tournament) {
-  httpGetAsync(location.origin + "/request_user_profiles" + "&tournament=" + tournament, fillInLeaderboard);
+  httpGetAsync(location.origin + "/request_user_profiles?tournament=" + tournament, fillInLeaderboard);
 }
 
 function getDetailMatchResult(tournament) {
-  httpGetAsync(location.origin + "/request_detail_results" + "&tournament=" + tournament, fillInDetailMatchResult);
+  httpGetAsync(location.origin + "/request_detail_results?tournament=" + tournament, fillInDetailMatchResult);
 }
 
 function getRecentMatches(tournament) {
