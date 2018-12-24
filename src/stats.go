@@ -63,8 +63,8 @@ func findUserKeys(ctx context.Context, userNames []string) ([]datastore.Key, err
 func readStatsWithID(ctx context.Context, tournamentID int64, userID int64) (
 	bool, *datastore.Key, UserTournamentStats, error) {
 	q := datastore.NewQuery("UserTournamentStats").Ancestor(guestbookKey(ctx)).
-		Filter("TournamentId =", tournamentID).
-		Filter("UserId =", userID).
+		Filter("TournamentID =", tournamentID).
+		Filter("UserID =", userID).
 		Limit(1)
 	var stats []UserTournamentStats
 	keys, err := q.GetAll(ctx, &stats)
