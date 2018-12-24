@@ -31,3 +31,8 @@ indexes:
   - name: TournamentID
   - name: Rating
     direction: desc
+- kind: Match
+  properties:
+  - name: Tournament
+  - name: Date
+    direction: desc
