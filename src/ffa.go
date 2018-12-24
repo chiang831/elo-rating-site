@@ -3,7 +3,6 @@ package guestbook
 import (
 	"encoding/json"
 	"fmt"
-	"io"
 	"log"
 	"math"
 	"net/http"
@@ -181,10 +180,7 @@ func submitFfaMatchResult(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	io.WriteString(w, fmt.Sprintf("Tournament name: %s\n", matchResult.Tournament))
-	for _, playerName := range matchResult.Ranking {
-		io.WriteString(w, fmt.Sprintf("player: %s\n", playerName))
-	}
+	http.Redirect(w, req, "/tournament/"+matchResult.Tournament, http.StatusFound)
 }
 
 // readOrCreateUserTournamentStats will try to read users' stats for a given
