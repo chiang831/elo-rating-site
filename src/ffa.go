@@ -3,7 +3,6 @@ package guestbook
 import (
 	"encoding/json"
 	"fmt"
-	"io"
 	"log"
 	"math"
 	"net/http"
@@ -181,10 +180,7 @@ func submitFfaMatchResult(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	io.WriteString(w, fmt.Sprintf("Tournament name: %s\n", matchResult.Tournament))
-	for _, playerName := range matchResult.Ranking {
-		io.WriteString(w, fmt.Sprintf("player: %s\n", playerName))
-	}
+	// return nothing if successful
 }
 
 // readOrCreateUserTournamentStats will try to read users' stats for a given
@@ -195,14 +191,10 @@ func readOrCreateUserTournamentStats(
 	tournamentName string,
 	userNames []string) ([]*datastore.Key, []UserTournamentStats, error) {
 
-	exist, tournamentKey, _, err := findExistingTournament(ctx, tournamentName)
+	tournamentKey, err := findExistingTournamentKey(ctx, tournamentName)
 
 	if err != nil {
 		return nil, nil, err
-	}
-
-	if !exist {
-		return nil, nil, fmt.Errorf("tournament %s does not exist", tournamentName)
 	}
 
 	userKeys, err := findUserKeys(ctx, userNames)

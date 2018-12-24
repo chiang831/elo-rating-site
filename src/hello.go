@@ -24,6 +24,7 @@ func init() {
 	http.HandleFunc("/admin", admin)
 	http.HandleFunc("/add_user", addUser)
 	http.HandleFunc("/tournament", showTournaments)
+	http.HandleFunc("/tournament/", showTournamentStats)
 	http.HandleFunc("/add_match_result", addMatchResult)
 	http.HandleFunc("/add_ffa_match_result", showAddFfaMatchResult)
 	http.HandleFunc("/profile", profile)
@@ -41,6 +42,7 @@ func init() {
 	http.HandleFunc("/request_users", requestUsers)
 	http.HandleFunc("/request_latest_match", requestLatestMatch)
 	http.HandleFunc("/request_user_profiles", requestUserProfiles)
+	http.HandleFunc("/request_tournament_stats", requestTournamentStats)
 	http.HandleFunc("/request_detail_results", requestDetailMatchResults)
 	http.HandleFunc("/request_greetings", requestGreetings)
 	http.HandleFunc("/request_recent_matches", requestRecentMatches)
@@ -299,8 +301,14 @@ func requestDetailMatchResults(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
+
+	tournamentName := r.FormValue("tournament")
+	if tournamentName == "" {
+		tournamentName = "Default"
+	}
+
 	// Get matches
-	queryMatch := datastore.NewQuery("Match").Ancestor(guestbookKey(c))
+	queryMatch := datastore.NewQuery("Match").Ancestor(guestbookKey(c)).Filter("Tournament =", tournamentName)
 	var matches []Match
 	if _, err := queryMatch.GetAll(c, &matches); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -397,17 +405,25 @@ func requestRecentMatches(w http.ResponseWriter, r *http.Request) {
 	// Get number of matches to retrieve
 	// If the number is not a positive integer, return nil
 	limit := -1
-	keys, ok := r.URL.Query()["num"]
-	if ok && len(keys) == 1 {
-		newLimit, err := strconv.Atoi(keys[0])
+	limitParam := r.FormValue("num")
+	if limitParam != "" {
+		newLimit, err := strconv.Atoi(limitParam)
 		if err == nil && newLimit > 0 {
 			limit = newLimit
 		}
 	}
 
+	tournament := r.FormValue("tournament")
+	if tournament == "" {
+		tournament = "Default"
+	}
+
 	matchWithKeys := []MatchWithKey{}
 	if limit != -1 {
-		queryMatch := datastore.NewQuery("Match").Ancestor(guestbookKey(c)).Order("-Date").Limit(limit)
+		queryMatch := datastore.NewQuery("Match").Ancestor(guestbookKey(c)).
+			Filter("Tournament = ", tournament).
+			Order("-Date").
+			Limit(limit)
 		var matches []Match
 		keyMatches, err := queryMatch.GetAll(c, &matches)
 		if err != nil {

@@ -127,6 +127,6 @@ function submitRanking() {
     location.origin + "/submit_ffa_match_result",
     matchResult,
     function (responseText) {
-      alert(responseText);
+      window.location.href = "/tournament/" + matchResult.Tournament;
     });
 }

@@ -44,11 +44,12 @@ type UserProfile struct {
 
 // UserProfileToShow wrapper for datastore
 type UserProfileToShow struct {
-	Name   string
-	Rating float64
-	Wins   int
-	Losses int
-	Badges []Badge
+	Name    string
+	Rating  float64
+	FFAWins int
+	Wins    int
+	Losses  int
+	Badges  []Badge
 }
 
 // DetailMatchResultEntry wrapper for datastore
