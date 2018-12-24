@@ -3,7 +3,6 @@ package guestbook
 import (
 	"encoding/json"
 	"errors"
-	"fmt"
 	"net/http"
 	"path"
 	"regexp"
@@ -34,7 +33,7 @@ func submitTournament(w http.ResponseWriter, r *http.Request) {
 	ctx := appengine.NewContext(r)
 	err := datastore.RunInTransaction(ctx,
 		func(ctx context.Context) error {
-			exist, _, _, err := isExistingTournament(ctx, name)
+			exist, _, _, err := findExistingTournament(ctx, name)
 			if err != nil {
 				return err
 			}
@@ -63,8 +62,8 @@ func submitTournament(w http.ResponseWriter, r *http.Request) {
 	return
 }
 
-func isExistingTournament(c context.Context, name string) (bool, datastore.Key, Tournament, error) {
-	q := datastore.NewQuery("Tournament").Ancestor(guestbookKey(c)).Filter("Name =", name)
+func findExistingTournament(c context.Context, name string) (bool, datastore.Key, Tournament, error) {
+	q := datastore.NewQuery("Tournament").Ancestor(guestbookKey(c)).Filter("Name =", name).Limit(1)
 	var tournaments []Tournament
 	keys, err := q.GetAll(c, &tournaments)
 	if err != nil {
@@ -103,19 +102,4 @@ func requestTournaments(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
 	w.Write(js)
-}
-
-func validateTournamentName(ctx context.Context, name string) error {
-	if name == "" {
-		return errors.New("tournament name cannot be empty")
-	}
-
-	exist, _, _, err := isExistingTournament(ctx, name)
-	if err != nil {
-		return err
-	}
-	if !exist {
-		return fmt.Errorf("tournament name %s does not exist", name)
-	}
-	return nil
 }

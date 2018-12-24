@@ -1,9 +1,12 @@
-function handleReadyStateChange(xmlHttp, callback) {
+function handleReadyStateChange(xmlHttp, succeessCallback) {
     if (xmlHttp.readyState == 4) {
         if (xmlHttp.status == 200)
-            callback(xmlHttp.responseText);
+            succeessCallback(xmlHttp.responseText);
         else if (xmlHttp.status == 401)
             alert("You are not admin QQ");
+        else {
+            alert(xmlHttp.status + " Failure:\n" + xmlHttp.responseText)
+        }
     }
 }
 

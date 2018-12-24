@@ -76,8 +76,9 @@ type Tournament struct {
 
 // UserTournamentStats object in datastore represents an user's performance in a particular tournament
 type UserTournamentStats struct {
-	UserID       int
-	TournamentID int
+	UserID       int64
+	TournamentID int64
+	FFAWins      int
 	Wins         int
 	Losses       int
 	Rating       float64
