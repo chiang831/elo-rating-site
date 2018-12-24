@@ -142,7 +142,7 @@ func requestTournamentStats(w http.ResponseWriter, r *http.Request) {
 
 	// Get users
 	queryUser := datastore.NewQuery("UserTournamentStats").Ancestor(guestbookKey(ctx)).
-		Filter("TournamentID = ", tournamentKey.IntID).
+		Filter("TournamentID = ", tournamentKey.IntID()).
 		Order("-Rating")
 	var statsList []UserTournamentStats
 	if _, err := queryUser.GetAll(ctx, &statsList); err != nil {
