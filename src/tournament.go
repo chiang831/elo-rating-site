@@ -18,14 +18,31 @@ func showTournaments(w http.ResponseWriter, r *http.Request) {
 	http.ServeFile(w, r, path.Join("static", "tournaments.html"))
 }
 
+// showTournamentStats handles URL starting with /tournament/
 func showTournamentStats(w http.ResponseWriter, r *http.Request) {
 	tokens := strings.Split(r.URL.Path, "/")
 
-	if len(tokens) != 3 {
-		http.Error(w, "URL must be in the form of /tournament/<name>", http.StatusBadRequest)
-		return
-	}
-	http.ServeFile(w, r, path.Join("static", "tournament_stats.html"))
+    // URL is /tournament/<tournament_name> 
+    if len(tokens) == 3 {
+        http.ServeFile(w, r, path.Join("static", "tournament_stats.html"))
+        return
+    }
+
+    // URL is /tournament/<tournament_name>/<action>
+    if len(tokens) == 4 {
+        action := tokens[3]
+
+        if action == "add_ffa_match_result" {
+            http.ServeFile(w, r, path.Join("static", "add_ffa_match_result.html"))
+            return
+        }
+
+        http.Error(w, "action: " + action + " is not supported", http.StatusBadRequest)
+
+    }
+
+	http.Error(w, "URL must be in the form of /tournament/<name> or /tournament/<name>/<action>", http.StatusBadRequest)
+	return
 }
 
 // [START submit_tournament]

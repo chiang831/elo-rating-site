@@ -45,17 +45,25 @@ function handleTournamentsResponse(responseText) {
   initializePage();
 }
 
+function getTournamentNameFromURL() {
+  // Expected URL is "http://..../tournament/<name>/add_ffa_match_result"
+  tokens = window.location.href.split("/");
+  return tokens[tokens.length - 2];
+}
+
 function initializePage() {
   if (users == null || tournaments == null) {
     return;
   }
+
+  var currentTournament = getTournamentNameFromURL();
 
   tournamentSelector = new Vue({
     el: '#tournament_selector',
     data: function () {
       return {
         options: tournamentsNames,
-        selected: null
+        selected: currentTournament
       }
     }
   })

@@ -3,6 +3,7 @@ var tournament;
 function onLoad() {
   tournament = getTournamentName();
   document.title = tournament + " tournament stats"
+  document.getElementById("addMatchForm").action = "/tournament/" + tournament + "/add_ffa_match_result"
 
   getLeaderboard();
   getDetailMatchResult();
@@ -11,6 +12,7 @@ function onLoad() {
 }
 
 function getTournamentName() {
+  // Expected URL is "http://..../tournament/<name>"
   tokens = window.location.href.split("/");
   return tokens[tokens.length - 1];
 }
