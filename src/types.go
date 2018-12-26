@@ -34,22 +34,26 @@ type MatchWithKey struct {
 
 // UserProfile wrapper for datastore
 type UserProfile struct {
-	Tournament string
-	Name       string
-	Rating     float64
-	Wins       int
-	Losses     int
-	JoinDate   time.Time
+	Tournament     string
+	Name           string
+	Rating         float64
+        TrueSkillMu    float64
+        TrueSkillSigma float64
+	Wins           int
+	Losses         int
+	JoinDate       time.Time
 }
 
 // UserProfileToShow wrapper for datastore
 type UserProfileToShow struct {
-	Name    string
-	Rating  float64
-	FFAWins int
-	Wins    int
-	Losses  int
-	Badges  []Badge
+	Name           string
+	Rating         float64
+        TrueSkillMu    float64
+        TrueSkillSigma float64
+	FFAWins        int
+	Wins           int
+	Losses         int
+	Badges         []Badge
 }
 
 // DetailMatchResultEntry wrapper for datastore
@@ -86,10 +90,12 @@ type Tournament struct {
 
 // UserTournamentStats object in datastore represents an user's performance in a particular tournament
 type UserTournamentStats struct {
-	UserID       int64
-	TournamentID int64
-	FFAWins      int
-	Wins         int
-	Losses       int
-	Rating       float64
+	UserID         int64
+	TournamentID   int64
+	FFAWins        int
+	Wins           int
+	Losses         int
+	Rating         float64
+        TrueSkillMu    float64
+        TrueSkillSigma float64
 }
