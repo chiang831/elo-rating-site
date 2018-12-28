@@ -37,8 +37,6 @@ type UserProfile struct {
 	Tournament     string
 	Name           string
 	Rating         float64
-        TrueSkillMu    float64
-        TrueSkillSigma float64
 	Wins           int
 	Losses         int
 	JoinDate       time.Time
