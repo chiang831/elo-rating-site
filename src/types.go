@@ -34,12 +34,12 @@ type MatchWithKey struct {
 
 // UserProfile wrapper for datastore
 type UserProfile struct {
-	Tournament     string
-	Name           string
-	Rating         float64
-	Wins           int
-	Losses         int
-	JoinDate       time.Time
+	Tournament string
+	Name       string
+	Rating     float64
+	Wins       int
+	Losses     int
+	JoinDate   time.Time
 }
 
 // UserProfileToShow wrapper for datastore
