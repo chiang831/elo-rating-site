@@ -104,12 +104,15 @@ func readOrCreateStatsWithID(ctx context.Context, tournamentID int64, userID int
 
 		incompleteKey := datastore.NewIncompleteKey(ctx, "UserTournamentStats", guestbookKey(ctx))
 		stats = UserTournamentStats{
-			TournamentID: tournamentID,
-			UserID:       userID,
-			FFAWins:      InitialFFAWins,
-			Wins:         InitialWins,
-			Losses:       InitialLosses,
-			Rating:       InitialRating,
+			TournamentID:    tournamentID,
+			UserID:          userID,
+			TrueSkillMu:     stats.TrueSkillMu,
+			TrueSkillSigma:  stats.TrueSkillSigma,
+			TrueSkillRating: stats.TrueSkillRating,
+			FFAWins:         InitialFFAWins,
+			Wins:            InitialWins,
+			Losses:          InitialLosses,
+			Rating:          InitialRating,
 		}
 
 		key, err = datastore.Put(ctx, incompleteKey, &stats)
@@ -170,12 +173,15 @@ func requestTournamentStats(w http.ResponseWriter, r *http.Request) {
 
 		// Get badges
 		userProfileToShows[i] = UserProfileToShow{
-			Name:    profile.Name,
-			Rating:  stats.Rating,
-			FFAWins: stats.FFAWins,
-			Wins:    stats.Wins,
-			Losses:  stats.Losses,
-			Badges:  getUserBadges(ctx, profile.Name),
+			Name:            profile.Name,
+			Rating:          stats.Rating,
+			TrueSkillMu:     stats.TrueSkillMu,
+			TrueSkillSigma:  stats.TrueSkillSigma,
+			TrueSkillRating: stats.TrueSkillRating,
+			FFAWins:         stats.FFAWins,
+			Wins:            stats.Wins,
+			Losses:          stats.Losses,
+			Badges:          getUserBadges(ctx, profile.Name),
 		}
 	}
 
