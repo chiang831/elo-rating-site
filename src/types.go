@@ -99,3 +99,28 @@ type UserTournamentStats struct {
 	TrueSkillSigma  float64
 	TrueSkillRating float64
 }
+
+// FFAMatch represents game results of a FFA multiplayer match
+type FFAMatch struct {
+	// User ID of players, from first place to last place
+	Players []int64
+
+	// An array indicating draw results between players.
+	// If Ranking has N emelements (N-Player game), Draws should have N-1
+	// elements, where Draws[i] indicates whether Player[i] and Player[i+1]
+	// ended up in a draw.
+	Draws []bool
+
+	// Pre-game true skill stats for players in Players[]
+	PreGameTrueSkillMu     []float64
+	PreGameTrueSkillSigma  []float64
+	PreGameTrueSkillRating []float64
+
+	// Post-game true skill stats for players in Players[]
+	PostGameTrueSkillMu     []float64
+	PostGameTrueSkillSigma  []float64
+	PostGameTrueSkillRating []float64
+
+	// Special notes for the game
+	Note string
+}
