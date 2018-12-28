@@ -12,7 +12,7 @@ import (
 // Functions about creating match and calculating ELO ratings
 
 // [START submit_match_result]
-func submitMatchResult(w http.ResponseWriter, r *http.Request) {
+func HandleSubmitMatchResult(w http.ResponseWriter, r *http.Request) {
 	// [START new_context]
 	ctx := r.Context()
 	// [END new_context]

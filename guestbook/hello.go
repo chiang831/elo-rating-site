@@ -16,48 +16,6 @@ import (
 	"google.golang.org/appengine/user"
 )
 
-func init() {
-	// Main page
-	http.HandleFunc("/", root)
-	// Child pages
-	http.HandleFunc("/admin", admin)
-	http.HandleFunc("/add_user", addUser)
-	http.HandleFunc("/tournament", showTournaments)
-	http.HandleFunc("/tournament/", showTournamentStats)
-	http.HandleFunc("/add_match_result", addMatchResult)
-	http.HandleFunc("/add_ffa_match_result", showAddFfaMatchResult)
-	http.HandleFunc("/profile", profile)
-
-	// Submit data
-	http.HandleFunc("/submit_greeting", submitGreeting)
-	http.HandleFunc("/submit_user", submitUser)
-	http.HandleFunc("/submit_match_result", submitMatchResult)
-	http.HandleFunc("/submit_badge", submitBadge)
-	http.HandleFunc("/submit_user_badge", submitUserBadge)
-	http.HandleFunc("/submit_tournament", submitTournament)
-	http.HandleFunc("/submit_ffa_match_result", submitFfaMatchResult)
-
-	// Requests
-	http.HandleFunc("/request_users", requestUsers)
-	http.HandleFunc("/request_latest_match", requestLatestMatch)
-	http.HandleFunc("/request_user_profiles", requestUserProfiles)
-	http.HandleFunc("/request_tournament_stats", requestTournamentStats)
-	http.HandleFunc("/request_detail_results", requestDetailMatchResults)
-	http.HandleFunc("/request_greetings", requestGreetings)
-	http.HandleFunc("/request_recent_matches", requestRecentMatches)
-	http.HandleFunc("/request_user_matches", requestUserMatches)
-	http.HandleFunc("/request_all_badges", requestAllBadges)
-	http.HandleFunc("/request_user_badges", requestUserBadges)
-	http.HandleFunc("/request_tournaments", requestTournaments)
-
-	// Admin area
-	http.HandleFunc("/delete_match_entry", deleteMatchEntry)
-	http.HandleFunc("/switch_match_users", switchMatchUsers)
-	http.HandleFunc("/rerun", rerunMatches)
-	// Static files
-	http.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.Dir("static"))))
-}
-
 // guestbookKey returns the key used for all guestbook entries.
 func guestbookKey(c context.Context) *datastore.Key {
 	// The string "default_guestbook" here could be varied to have multiple guestbooks.
@@ -69,13 +27,13 @@ var latestMatch Match
 
 const startingElo float64 = 1200.0
 
-// [START func_test_root]
-func root(w http.ResponseWriter, r *http.Request) {
+// HandleRoot handles request for root path
+func HandleRoot(w http.ResponseWriter, r *http.Request) {
 	http.ServeFile(w, r, path.Join("static", "main.html"))
 }
 
 // [START add_user]
-func addUser(w http.ResponseWriter, r *http.Request) {
+func HandleAddUser(w http.ResponseWriter, r *http.Request) {
 	http.ServeFile(w, r, path.Join("static", "add_user.html"))
 }
 
@@ -129,7 +87,7 @@ func getUserBadges(c context.Context, username string) []Badge {
 }
 
 // [START submit_match_result]
-func submitUser(w http.ResponseWriter, r *http.Request) {
+func HandleSubmitUser(w http.ResponseWriter, r *http.Request) {
 	// [START new_context]
 	ctx := r.Context()
 	// [END new_context]
@@ -178,12 +136,12 @@ func submitUser(w http.ResponseWriter, r *http.Request) {
 }
 
 // [START add_match_result]
-func addMatchResult(w http.ResponseWriter, r *http.Request) {
+func HandleAddMatchResult(w http.ResponseWriter, r *http.Request) {
 	http.ServeFile(w, r, path.Join("static", "add_match_result.html"))
 }
 
 // [START func_addGreeting]
-func submitGreeting(w http.ResponseWriter, r *http.Request) {
+func HandleSubmitGreeting(w http.ResponseWriter, r *http.Request) {
 	// [START new_context]
 	ctx := r.Context()
 	// [END new_context]
@@ -218,7 +176,7 @@ func submitGreeting(w http.ResponseWriter, r *http.Request) {
 
 // [END func_addGreeting]
 
-func requestUsers(w http.ResponseWriter, r *http.Request) {
+func HandleRequestUsers(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	queryUser := datastore.NewQuery("UserProfile").Ancestor(guestbookKey(ctx)).Order("Name")
 	var users []UserProfile
@@ -237,7 +195,7 @@ func requestUsers(w http.ResponseWriter, r *http.Request) {
 	w.Write(js)
 }
 
-func requestLatestMatch(w http.ResponseWriter, r *http.Request) {
+func HandleRequestLatestMatch(w http.ResponseWriter, r *http.Request) {
 	if !existLatestMatch {
 		nilJs, nilErrJs := json.Marshal(nil)
 		if nilErrJs != nil {
@@ -259,7 +217,7 @@ func requestLatestMatch(w http.ResponseWriter, r *http.Request) {
 	w.Write(js)
 }
 
-func requestUserProfiles(w http.ResponseWriter, r *http.Request) {
+func HandleRequestUserProfiles(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	// Get users
 	queryUser := datastore.NewQuery("UserProfile").Ancestor(guestbookKey(ctx)).Order("-Rating")
@@ -291,7 +249,7 @@ func requestUserProfiles(w http.ResponseWriter, r *http.Request) {
 	w.Write(js)
 }
 
-func requestDetailMatchResults(w http.ResponseWriter, r *http.Request) {
+func HandleRequestDetailMatchResults(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
 	tournamentName := r.FormValue("tournament")
@@ -381,7 +339,7 @@ func requestDetailMatchResults(w http.ResponseWriter, r *http.Request) {
 	w.Write(js)
 }
 
-func requestGreetings(w http.ResponseWriter, r *http.Request) {
+func HandleRequestGreetings(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
 	// Get number of greetings to retrieve
@@ -415,7 +373,7 @@ func requestGreetings(w http.ResponseWriter, r *http.Request) {
 	w.Write(js)
 }
 
-func requestRecentMatches(w http.ResponseWriter, r *http.Request) {
+func HandleRequestRecentMatches(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
 	// Get number of matches to retrieve
@@ -465,7 +423,7 @@ func requestRecentMatches(w http.ResponseWriter, r *http.Request) {
 	w.Write(js)
 }
 
-func requestUserMatches(w http.ResponseWriter, r *http.Request) {
+func HandleRequestUserMatches(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	// Get username
 	username := ""
@@ -519,7 +477,7 @@ func requestUserMatches(w http.ResponseWriter, r *http.Request) {
 	w.Write(js)
 }
 
-func requestAllBadges(w http.ResponseWriter, r *http.Request) {
+func HandleRequestAllBadges(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	// Get all badges
 	queryBadge := datastore.NewQuery("Badge").Ancestor(guestbookKey(ctx))
@@ -539,7 +497,7 @@ func requestAllBadges(w http.ResponseWriter, r *http.Request) {
 	w.Write(js)
 }
 
-func requestUserBadges(w http.ResponseWriter, r *http.Request) {
+func HandleRequestUserBadges(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	// Get username
 	username := ""
@@ -595,7 +553,8 @@ func getColor(u UserProfile, v UserProfile, wins int, losses int) string {
 	}
 }
 
-func profile(w http.ResponseWriter, r *http.Request) {
+// HandleProfile handles http requests to profle page
+func HandleProfile(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	// Get username
 	username := ""

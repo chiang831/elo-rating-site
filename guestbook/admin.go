@@ -12,13 +12,13 @@ import (
 	"google.golang.org/appengine/user"
 )
 
-// Admin page
-func admin(w http.ResponseWriter, r *http.Request) {
+// HandleAdmin handles http request to /admin
+func HandleAdmin(w http.ResponseWriter, r *http.Request) {
 	http.ServeFile(w, r, path.Join("static", "admin.html"))
 }
 
-// Re-run all matches
-func rerunMatches(w http.ResponseWriter, r *http.Request) {
+// HandleRerunMatches handles http request to /rerun
+func HandleRerunMatches(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	// Get users
 	queryUser := datastore.NewQuery("UserProfile").Ancestor(guestbookKey(ctx))
@@ -78,8 +78,8 @@ func rerunMatches(w http.ResponseWriter, r *http.Request) {
 	existLatestMatch = false
 }
 
-// Delete a match entry from database
-func deleteMatchEntry(w http.ResponseWriter, r *http.Request) {
+// HandleDeleteMatchEntry deletes a match entry from database
+func HandleDeleteMatchEntry(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	encodedString := ""
 	ret := ""
@@ -98,7 +98,7 @@ func deleteMatchEntry(w http.ResponseWriter, r *http.Request) {
 	} else {
 		// Remove the key
 		datastore.Delete(ctx, key)
-		rerunMatches(w, r) // TODO(music960633): Should we run this here?
+		HandleRerunMatches(w, r) // TODO(music960633): Should we run this here?
 		ret = "OK"
 	}
 
@@ -112,8 +112,8 @@ func deleteMatchEntry(w http.ResponseWriter, r *http.Request) {
 	w.Write(js)
 }
 
-// Switch winner/loser of a match
-func switchMatchUsers(w http.ResponseWriter, r *http.Request) {
+// HandleSwitchMatchUsers switches winner/loser of a match
+func HandleSwitchMatchUsers(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	encodedString := ""
 	ret := ""
@@ -144,7 +144,7 @@ func switchMatchUsers(w http.ResponseWriter, r *http.Request) {
 
 			// Store back
 			datastore.Put(ctx, key, &match)
-			rerunMatches(w, r) // TODO(music960633): Should we run this here?
+			HandleRerunMatches(w, r) // TODO(music960633): Should we run this here?
 			ret = "OK"
 		}
 	}
@@ -159,7 +159,8 @@ func switchMatchUsers(w http.ResponseWriter, r *http.Request) {
 	w.Write(js)
 }
 
-func submitBadge(w http.ResponseWriter, r *http.Request) {
+// HandleSubmitBadge handles http request to submit a badge
+func HandleSubmitBadge(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	// Check if badge already exist
 	badgeName := r.FormValue("name")
@@ -219,7 +220,8 @@ func submitBadge(w http.ResponseWriter, r *http.Request) {
 	http.Redirect(w, r, "/admin", http.StatusFound)
 }
 
-func submitUserBadge(w http.ResponseWriter, r *http.Request) {
+// HandleSubmitUserBadge handles http request to submit a user badge
+func HandleSubmitUserBadge(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	// Get user
 	userName := r.FormValue("user_name")

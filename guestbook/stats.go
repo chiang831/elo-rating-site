@@ -154,7 +154,7 @@ func readAllUserStatsForTournament(ctx context.Context, tournamentID int64) ([]U
 	return statsList, nil
 }
 
-func requestTournamentStats(w http.ResponseWriter, r *http.Request) {
+func HandleRequestTournamentStats(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
 	tournamentName := r.FormValue("tournament")

@@ -16,7 +16,8 @@ import (
 	"google.golang.org/appengine/user"
 )
 
-func showAddFfaMatchResult(w http.ResponseWriter, r *http.Request) {
+// HandleAddFfaMatchResult handles http request to tournament/name/add_ffa_match_result
+func HandleAddFfaMatchResult(w http.ResponseWriter, r *http.Request) {
 	http.ServeFile(w, r, path.Join("static", "add_ffa_match_result.html"))
 }
 
@@ -112,7 +113,8 @@ type FfaMatchResult struct {
 	Ranking    []string // player name from first place to last place
 }
 
-func submitFfaMatchResult(w http.ResponseWriter, req *http.Request) {
+// HandleSubmitFfaMatchResult handles http post request to submit a FFA Match
+func HandleSubmitFfaMatchResult(w http.ResponseWriter, req *http.Request) {
 	ctx := req.Context()
 
 	decoder := json.NewDecoder(req.Body)

@@ -13,12 +13,12 @@ import (
 	"google.golang.org/appengine/datastore"
 )
 
-func showTournaments(w http.ResponseWriter, r *http.Request) {
+func HandleTournaments(w http.ResponseWriter, r *http.Request) {
 	http.ServeFile(w, r, path.Join("static", "tournaments.html"))
 }
 
-// showTournamentStats handles URL starting with /tournament/
-func showTournamentStats(w http.ResponseWriter, r *http.Request) {
+// HandleTournamentStats handles URL starting with /tournament/
+func HandleTournamentStats(w http.ResponseWriter, r *http.Request) {
 	tokens := strings.Split(r.URL.Path, "/")
 
 	// URL is /tournament/<tournament_name>
@@ -45,7 +45,7 @@ func showTournamentStats(w http.ResponseWriter, r *http.Request) {
 }
 
 // [START submit_tournament]
-func submitTournament(w http.ResponseWriter, r *http.Request) {
+func HandleSubmitTournament(w http.ResponseWriter, r *http.Request) {
 
 	// Check valid name
 	name := r.FormValue("name")
@@ -127,7 +127,7 @@ func readTournaments(ctx context.Context) ([]Tournament, error) {
 	return tournaments, nil
 }
 
-func requestTournaments(w http.ResponseWriter, r *http.Request) {
+func HandleRequestTournaments(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	tournaments, err := readTournaments(ctx)
 
