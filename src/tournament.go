@@ -10,7 +10,6 @@ import (
 	"strings"
 
 	"golang.org/x/net/context"
-	"google.golang.org/appengine"
 	"google.golang.org/appengine/datastore"
 )
 
@@ -22,24 +21,24 @@ func showTournaments(w http.ResponseWriter, r *http.Request) {
 func showTournamentStats(w http.ResponseWriter, r *http.Request) {
 	tokens := strings.Split(r.URL.Path, "/")
 
-    // URL is /tournament/<tournament_name> 
-    if len(tokens) == 3 {
-        http.ServeFile(w, r, path.Join("static", "tournament_stats.html"))
-        return
-    }
+	// URL is /tournament/<tournament_name>
+	if len(tokens) == 3 {
+		http.ServeFile(w, r, path.Join("static", "tournament_stats.html"))
+		return
+	}
 
-    // URL is /tournament/<tournament_name>/<action>
-    if len(tokens) == 4 {
-        action := tokens[3]
+	// URL is /tournament/<tournament_name>/<action>
+	if len(tokens) == 4 {
+		action := tokens[3]
 
-        if action == "add_ffa_match_result" {
-            http.ServeFile(w, r, path.Join("static", "add_ffa_match_result.html"))
-            return
-        }
+		if action == "add_ffa_match_result" {
+			http.ServeFile(w, r, path.Join("static", "add_ffa_match_result.html"))
+			return
+		}
 
-        http.Error(w, "action: " + action + " is not supported", http.StatusBadRequest)
+		http.Error(w, "action: "+action+" is not supported", http.StatusBadRequest)
 
-    }
+	}
 
 	http.Error(w, "URL must be in the form of /tournament/<name> or /tournament/<name>/<action>", http.StatusBadRequest)
 	return
@@ -59,7 +58,7 @@ func submitTournament(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	ctx := appengine.NewContext(r)
+	ctx := r.Context()
 	err := datastore.RunInTransaction(ctx,
 		func(ctx context.Context) error {
 			exist, _, _, err := findExistingTournament(ctx, name)
@@ -129,7 +128,7 @@ func readTournaments(ctx context.Context) ([]Tournament, error) {
 }
 
 func requestTournaments(w http.ResponseWriter, r *http.Request) {
-	ctx := appengine.NewContext(r)
+	ctx := r.Context()
 	tournaments, err := readTournaments(ctx)
 
 	if err != nil {

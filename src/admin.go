@@ -7,7 +7,6 @@ import (
 	"path"
 
 	"cloud.google.com/go/storage"
-	"google.golang.org/appengine"
 	"google.golang.org/appengine/datastore"
 	"google.golang.org/appengine/file"
 	"google.golang.org/appengine/user"
@@ -20,19 +19,19 @@ func admin(w http.ResponseWriter, r *http.Request) {
 
 // Re-run all matches
 func rerunMatches(w http.ResponseWriter, r *http.Request) {
-	c := appengine.NewContext(r)
+	ctx := r.Context()
 	// Get users
-	queryUser := datastore.NewQuery("UserProfile").Ancestor(guestbookKey(c))
+	queryUser := datastore.NewQuery("UserProfile").Ancestor(guestbookKey(ctx))
 	var users []UserProfile
-	keyUsers, err := queryUser.GetAll(c, &users)
+	keyUsers, err := queryUser.GetAll(ctx, &users)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 	// Get matches
-	queryMatch := datastore.NewQuery("Match").Ancestor(guestbookKey(c)).Order("Date")
+	queryMatch := datastore.NewQuery("Match").Ancestor(guestbookKey(ctx)).Order("Date")
 	var matches []Match
-	keyMatches, err := queryMatch.GetAll(c, &matches)
+	keyMatches, err := queryMatch.GetAll(ctx, &matches)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -69,11 +68,11 @@ func rerunMatches(w http.ResponseWriter, r *http.Request) {
 	}
 	// Restore users
 	for i, u := range users {
-		datastore.Put(c, keyUsers[i], &u)
+		datastore.Put(ctx, keyUsers[i], &u)
 	}
 	// Restore matches
 	for i, m := range matches {
-		datastore.Put(c, keyMatches[i], &m)
+		datastore.Put(ctx, keyMatches[i], &m)
 	}
 	// Clear latest match
 	existLatestMatch = false
@@ -81,7 +80,7 @@ func rerunMatches(w http.ResponseWriter, r *http.Request) {
 
 // Delete a match entry from database
 func deleteMatchEntry(w http.ResponseWriter, r *http.Request) {
-	c := appengine.NewContext(r)
+	ctx := r.Context()
 	encodedString := ""
 	ret := ""
 
@@ -98,7 +97,7 @@ func deleteMatchEntry(w http.ResponseWriter, r *http.Request) {
 		ret = "Error"
 	} else {
 		// Remove the key
-		datastore.Delete(c, key)
+		datastore.Delete(ctx, key)
 		rerunMatches(w, r) // TODO(music960633): Should we run this here?
 		ret = "OK"
 	}
@@ -115,7 +114,7 @@ func deleteMatchEntry(w http.ResponseWriter, r *http.Request) {
 
 // Switch winner/loser of a match
 func switchMatchUsers(w http.ResponseWriter, r *http.Request) {
-	c := appengine.NewContext(r)
+	ctx := r.Context()
 	encodedString := ""
 	ret := ""
 
@@ -133,7 +132,7 @@ func switchMatchUsers(w http.ResponseWriter, r *http.Request) {
 	} else {
 		// Get the entry
 		match := Match{}
-		err = datastore.Get(c, key, &match)
+		err = datastore.Get(ctx, key, &match)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			ret = "Error"
@@ -144,7 +143,7 @@ func switchMatchUsers(w http.ResponseWriter, r *http.Request) {
 			match.Loser = tmp
 
 			// Store back
-			datastore.Put(c, key, &match)
+			datastore.Put(ctx, key, &match)
 			rerunMatches(w, r) // TODO(music960633): Should we run this here?
 			ret = "OK"
 		}
@@ -161,11 +160,11 @@ func switchMatchUsers(w http.ResponseWriter, r *http.Request) {
 }
 
 func submitBadge(w http.ResponseWriter, r *http.Request) {
-	c := appengine.NewContext(r)
+	ctx := r.Context()
 	// Check if badge already exist
 	badgeName := r.FormValue("name")
-	queryBadge := datastore.NewQuery("Badge").Ancestor(guestbookKey(c)).Filter("Name =", badgeName).KeysOnly()
-	keys, err := queryBadge.GetAll(c, nil)
+	queryBadge := datastore.NewQuery("Badge").Ancestor(guestbookKey(ctx)).Filter("Name =", badgeName).KeysOnly()
+	keys, err := queryBadge.GetAll(ctx, nil)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -174,11 +173,11 @@ func submitBadge(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	// Get bucket
-	bucketName, err := file.DefaultBucketName(c)
+	bucketName, err := file.DefaultBucketName(ctx)
 	if err != nil {
 		http.Error(w, "failed to get default GCS bucket.", http.StatusInternalServerError)
 	}
-	client, err := storage.NewClient(c)
+	client, err := storage.NewClient(ctx)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -192,7 +191,7 @@ func submitBadge(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	writer := bucket.Object(badgeName).NewWriter(c)
+	writer := bucket.Object(badgeName).NewWriter(ctx)
 	writer.ACL = []storage.ACLRule{{Entity: storage.AllUsers, Role: storage.RoleReader}}
 	writer.ContentType = header.Header.Get("Content-Type")
 	if _, err := io.Copy(writer, icon); err != nil {
@@ -207,11 +206,11 @@ func submitBadge(w http.ResponseWriter, r *http.Request) {
 	badge := Badge{
 		Name:        badgeName,
 		Description: r.FormValue("description"),
-		Author:      user.Current(c).String(),
+		Author:      user.Current(ctx).String(),
 		Path:        "https://storage.googleapis.com/" + bucketName + "/" + badgeName,
 	}
-	key := datastore.NewIncompleteKey(c, "Badge", guestbookKey(c))
-	_, err = datastore.Put(c, key, &badge)
+	key := datastore.NewIncompleteKey(ctx, "Badge", guestbookKey(ctx))
+	_, err = datastore.Put(ctx, key, &badge)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -221,10 +220,10 @@ func submitBadge(w http.ResponseWriter, r *http.Request) {
 }
 
 func submitUserBadge(w http.ResponseWriter, r *http.Request) {
-	c := appengine.NewContext(r)
+	ctx := r.Context()
 	// Get user
 	userName := r.FormValue("user_name")
-	existU, _, _, errUser := existUser(c, userName)
+	existU, _, _, errUser := existUser(ctx, userName)
 	if errUser != nil {
 		http.Error(w, errUser.Error(), http.StatusInternalServerError)
 		return
@@ -234,7 +233,7 @@ func submitUserBadge(w http.ResponseWriter, r *http.Request) {
 	}
 	// Get badge
 	badgeName := r.FormValue("badge_name")
-	existB, _, _, errBadge := existBadge(c, badgeName)
+	existB, _, _, errBadge := existBadge(ctx, badgeName)
 	if errBadge != nil {
 		http.Error(w, errBadge.Error(), http.StatusInternalServerError)
 		return
@@ -243,9 +242,9 @@ func submitUserBadge(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	// Get UserBadge
-	queryBadge := datastore.NewQuery("UserBadge").Ancestor(guestbookKey(c)).Filter("User =", userName)
+	queryBadge := datastore.NewQuery("UserBadge").Ancestor(guestbookKey(ctx)).Filter("User =", userName)
 	var userBadges []UserBadge
-	keys, err := queryBadge.GetAll(c, &userBadges)
+	keys, err := queryBadge.GetAll(ctx, &userBadges)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -254,7 +253,7 @@ func submitUserBadge(w http.ResponseWriter, r *http.Request) {
 	key := datastore.Key{}
 	userBadge := UserBadge{}
 	if len(userBadges) == 0 {
-		key = *datastore.NewIncompleteKey(c, "UserBadge", guestbookKey(c))
+		key = *datastore.NewIncompleteKey(ctx, "UserBadge", guestbookKey(ctx))
 		userBadge = UserBadge{
 			User:       userName,
 			BadgeNames: []string{},
@@ -264,6 +263,6 @@ func submitUserBadge(w http.ResponseWriter, r *http.Request) {
 		userBadge = userBadges[0]
 	}
 	userBadge.BadgeNames = append(userBadge.BadgeNames, badgeName)
-	datastore.Put(c, &key, &userBadge)
+	datastore.Put(ctx, &key, &userBadge)
 	http.Redirect(w, r, "/admin", http.StatusFound)
 }

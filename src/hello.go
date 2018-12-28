@@ -12,7 +12,6 @@ import (
 	"time"
 
 	"golang.org/x/net/context"
-	"google.golang.org/appengine"
 	"google.golang.org/appengine/datastore"
 	"google.golang.org/appengine/user"
 )
@@ -132,7 +131,7 @@ func getUserBadges(c context.Context, username string) []Badge {
 // [START submit_match_result]
 func submitUser(w http.ResponseWriter, r *http.Request) {
 	// [START new_context]
-	c := appengine.NewContext(r)
+	ctx := r.Context()
 	// [END new_context]
 
 	// Check valid name
@@ -146,7 +145,7 @@ func submitUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	exist, _, _, err := existUser(c, name)
+	exist, _, _, err := existUser(ctx, name)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -168,8 +167,8 @@ func submitUser(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// [END getall]
-	key := datastore.NewIncompleteKey(c, "UserProfile", guestbookKey(c))
-	_, err = datastore.Put(c, key, &g)
+	key := datastore.NewIncompleteKey(ctx, "UserProfile", guestbookKey(ctx))
+	_, err = datastore.Put(ctx, key, &g)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -186,7 +185,7 @@ func addMatchResult(w http.ResponseWriter, r *http.Request) {
 // [START func_addGreeting]
 func submitGreeting(w http.ResponseWriter, r *http.Request) {
 	// [START new_context]
-	c := appengine.NewContext(r)
+	ctx := r.Context()
 	// [END new_context]
 	g := Greeting{
 		Content: r.FormValue("content"),
@@ -200,15 +199,15 @@ func submitGreeting(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// [START if_user]
-	if u := user.Current(c); u != nil {
+	if u := user.Current(ctx); u != nil {
 		g.Author = u.String()
 	}
 	// We set the same parent key on every Greeting entity to ensure each Greeting
 	// is in the same entity group. Queries across the single entity group
 	// will be consistent. However, the write rate to a single entity group
 	// should be limited to ~1/second.
-	key := datastore.NewIncompleteKey(c, "Greeting", guestbookKey(c))
-	_, err := datastore.Put(c, key, &g)
+	key := datastore.NewIncompleteKey(ctx, "Greeting", guestbookKey(ctx))
+	_, err := datastore.Put(ctx, key, &g)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -220,10 +219,10 @@ func submitGreeting(w http.ResponseWriter, r *http.Request) {
 // [END func_addGreeting]
 
 func requestUsers(w http.ResponseWriter, r *http.Request) {
-	c := appengine.NewContext(r)
-	queryUser := datastore.NewQuery("UserProfile").Ancestor(guestbookKey(c)).Order("Name")
+	ctx := r.Context()
+	queryUser := datastore.NewQuery("UserProfile").Ancestor(guestbookKey(ctx)).Order("Name")
 	var users []UserProfile
-	if _, err := queryUser.GetAll(c, &users); err != nil {
+	if _, err := queryUser.GetAll(ctx, &users); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
@@ -261,11 +260,11 @@ func requestLatestMatch(w http.ResponseWriter, r *http.Request) {
 }
 
 func requestUserProfiles(w http.ResponseWriter, r *http.Request) {
-	c := appengine.NewContext(r)
+	ctx := r.Context()
 	// Get users
-	queryUser := datastore.NewQuery("UserProfile").Ancestor(guestbookKey(c)).Order("-Rating")
+	queryUser := datastore.NewQuery("UserProfile").Ancestor(guestbookKey(ctx)).Order("-Rating")
 	var users []UserProfile
-	if _, err := queryUser.GetAll(c, &users); err != nil {
+	if _, err := queryUser.GetAll(ctx, &users); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
@@ -278,7 +277,7 @@ func requestUserProfiles(w http.ResponseWriter, r *http.Request) {
 			Rating: u.Rating,
 			Wins:   u.Wins,
 			Losses: u.Losses,
-			Badges: getUserBadges(c, u.Name),
+			Badges: getUserBadges(ctx, u.Name),
 		}
 	}
 
@@ -293,7 +292,7 @@ func requestUserProfiles(w http.ResponseWriter, r *http.Request) {
 }
 
 func requestDetailMatchResults(w http.ResponseWriter, r *http.Request) {
-	ctx := appengine.NewContext(r)
+	ctx := r.Context()
 
 	tournamentName := r.FormValue("tournament")
 	if tournamentName == "" {
@@ -383,7 +382,7 @@ func requestDetailMatchResults(w http.ResponseWriter, r *http.Request) {
 }
 
 func requestGreetings(w http.ResponseWriter, r *http.Request) {
-	c := appengine.NewContext(r)
+	ctx := r.Context()
 
 	// Get number of greetings to retrieve
 	// If the number is not a positive integer, return nil
@@ -398,9 +397,9 @@ func requestGreetings(w http.ResponseWriter, r *http.Request) {
 
 	greetings := []Greeting{}
 	if limit != -1 {
-		queryGreeting := datastore.NewQuery("Greeting").Ancestor(guestbookKey(c)).Order("-Date").Limit(limit)
+		queryGreeting := datastore.NewQuery("Greeting").Ancestor(guestbookKey(ctx)).Order("-Date").Limit(limit)
 		greetings = make([]Greeting, 0, limit)
-		if _, err := queryGreeting.GetAll(c, &greetings); err != nil {
+		if _, err := queryGreeting.GetAll(ctx, &greetings); err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
@@ -417,7 +416,7 @@ func requestGreetings(w http.ResponseWriter, r *http.Request) {
 }
 
 func requestRecentMatches(w http.ResponseWriter, r *http.Request) {
-	c := appengine.NewContext(r)
+	ctx := r.Context()
 
 	// Get number of matches to retrieve
 	// If the number is not a positive integer, return nil
@@ -437,12 +436,12 @@ func requestRecentMatches(w http.ResponseWriter, r *http.Request) {
 
 	matchWithKeys := []MatchWithKey{}
 	if limit != -1 {
-		queryMatch := datastore.NewQuery("Match").Ancestor(guestbookKey(c)).
+		queryMatch := datastore.NewQuery("Match").Ancestor(guestbookKey(ctx)).
 			Filter("Tournament = ", tournament).
 			Order("-Date").
 			Limit(limit)
 		var matches []Match
-		keyMatches, err := queryMatch.GetAll(c, &matches)
+		keyMatches, err := queryMatch.GetAll(ctx, &matches)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
@@ -467,14 +466,14 @@ func requestRecentMatches(w http.ResponseWriter, r *http.Request) {
 }
 
 func requestUserMatches(w http.ResponseWriter, r *http.Request) {
-	c := appengine.NewContext(r)
+	ctx := r.Context()
 	// Get username
 	username := ""
 	keys, ok := r.URL.Query()["user"]
 	if ok && len(keys) == 1 {
 		username = keys[0]
 	}
-	exist, _, _, err := existUser(c, username)
+	exist, _, _, err := existUser(ctx, username)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -483,15 +482,15 @@ func requestUserMatches(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	// Get user matches
-	queryMatchW := datastore.NewQuery("Match").Ancestor(guestbookKey(c)).Filter("Winner =", username)
+	queryMatchW := datastore.NewQuery("Match").Ancestor(guestbookKey(ctx)).Filter("Winner =", username)
 	var matchesW []Match
-	if _, err := queryMatchW.GetAll(c, &matchesW); err != nil {
+	if _, err := queryMatchW.GetAll(ctx, &matchesW); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	queryMatchL := datastore.NewQuery("Match").Ancestor(guestbookKey(c)).Filter("Loser =", username)
+	queryMatchL := datastore.NewQuery("Match").Ancestor(guestbookKey(ctx)).Filter("Loser =", username)
 	var matchesL []Match
-	if _, err := queryMatchL.GetAll(c, &matchesL); err != nil {
+	if _, err := queryMatchL.GetAll(ctx, &matchesL); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
@@ -521,11 +520,11 @@ func requestUserMatches(w http.ResponseWriter, r *http.Request) {
 }
 
 func requestAllBadges(w http.ResponseWriter, r *http.Request) {
-	c := appengine.NewContext(r)
+	ctx := r.Context()
 	// Get all badges
-	queryBadge := datastore.NewQuery("Badge").Ancestor(guestbookKey(c))
+	queryBadge := datastore.NewQuery("Badge").Ancestor(guestbookKey(ctx))
 	var badges []Badge
-	if _, err := queryBadge.GetAll(c, &badges); err != nil {
+	if _, err := queryBadge.GetAll(ctx, &badges); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
@@ -541,14 +540,14 @@ func requestAllBadges(w http.ResponseWriter, r *http.Request) {
 }
 
 func requestUserBadges(w http.ResponseWriter, r *http.Request) {
-	c := appengine.NewContext(r)
+	ctx := r.Context()
 	// Get username
 	username := ""
 	keys, ok := r.URL.Query()["user"]
 	if ok && len(keys) == 1 {
 		username = keys[0]
 	}
-	exist, _, _, err := existUser(c, username)
+	exist, _, _, err := existUser(ctx, username)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -557,7 +556,7 @@ func requestUserBadges(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	// Get User badges
-	badges := getUserBadges(c, username)
+	badges := getUserBadges(ctx, username)
 
 	js, errJs := json.Marshal(badges)
 	if errJs != nil {
@@ -597,14 +596,14 @@ func getColor(u UserProfile, v UserProfile, wins int, losses int) string {
 }
 
 func profile(w http.ResponseWriter, r *http.Request) {
-	c := appengine.NewContext(r)
+	ctx := r.Context()
 	// Get username
 	username := ""
 	keys, ok := r.URL.Query()["user"]
 	if ok && len(keys) == 1 {
 		username = keys[0]
 	}
-	exist, _, user, err := existUser(c, username)
+	exist, _, user, err := existUser(ctx, username)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return

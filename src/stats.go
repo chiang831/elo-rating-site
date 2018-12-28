@@ -6,7 +6,6 @@ import (
 	"net/http"
 
 	"golang.org/x/net/context"
-	"google.golang.org/appengine"
 	"google.golang.org/appengine/datastore"
 )
 
@@ -156,7 +155,7 @@ func readAllUserStatsForTournament(ctx context.Context, tournamentID int64) ([]U
 }
 
 func requestTournamentStats(w http.ResponseWriter, r *http.Request) {
-	ctx := appengine.NewContext(r)
+	ctx := r.Context()
 
 	tournamentName := r.FormValue("tournament")
 	if tournamentName == "" {

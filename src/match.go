@@ -5,7 +5,6 @@ import (
 	"net/http"
 	"time"
 
-	"google.golang.org/appengine"
 	"google.golang.org/appengine/datastore"
 	"google.golang.org/appengine/user"
 )
@@ -15,7 +14,7 @@ import (
 // [START submit_match_result]
 func submitMatchResult(w http.ResponseWriter, r *http.Request) {
 	// [START new_context]
-	c := appengine.NewContext(r)
+	ctx := r.Context()
 	// [END new_context]
 
 	keyWinner := datastore.Key{}
@@ -34,7 +33,7 @@ func submitMatchResult(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Check winner is registered.
-	exist, keyWinner, winner, err = existUser(c, winnerName)
+	exist, keyWinner, winner, err = existUser(ctx, winnerName)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -46,7 +45,7 @@ func submitMatchResult(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Check loser is registered.
-	exist, keyLoser, loser, err = existUser(c, loserName)
+	exist, keyLoser, loser, err = existUser(ctx, loserName)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -59,7 +58,7 @@ func submitMatchResult(w http.ResponseWriter, r *http.Request) {
 
 	// Create match entry
 	tournament := "Default"
-	submitter := user.Current(c).String()
+	submitter := user.Current(ctx).String()
 	note := r.FormValue("note")
 	date := time.Now()
 	match := createMatch(
@@ -68,9 +67,9 @@ func submitMatchResult(w http.ResponseWriter, r *http.Request) {
 		tournament, submitter, note, date)
 
 	// Insert match entry
-	key := datastore.NewIncompleteKey(c, "Match", guestbookKey(c))
+	key := datastore.NewIncompleteKey(ctx, "Match", guestbookKey(ctx))
 	keyMatch := &datastore.Key{}
-	keyMatch, err = datastore.Put(c, key, &match)
+	keyMatch, err = datastore.Put(ctx, key, &match)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -79,10 +78,10 @@ func submitMatchResult(w http.ResponseWriter, r *http.Request) {
 	// Try to update winner
 	winner.Rating = match.WinnerRatingAfter
 	winner.Wins++
-	_, err = datastore.Put(c, &keyWinner, &winner)
+	_, err = datastore.Put(ctx, &keyWinner, &winner)
 	if err != nil {
 		// Remove match entity as best-effort fallback.
-		datastore.Delete(c, keyMatch)
+		datastore.Delete(ctx, keyMatch)
 
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -91,14 +90,14 @@ func submitMatchResult(w http.ResponseWriter, r *http.Request) {
 	// Try to update loser rating.
 	loser.Rating = match.LoserRatingAfter
 	loser.Losses++
-	_, err = datastore.Put(c, &keyLoser, &loser)
+	_, err = datastore.Put(ctx, &keyLoser, &loser)
 	if err != nil {
 		// Remove match entity as best-effort fallback.
-		datastore.Delete(c, keyMatch)
+		datastore.Delete(ctx, keyMatch)
 		// Change winner rating back.
 		winner.Rating = match.WinnerRatingBefore
 		winner.Wins--
-		datastore.Put(c, &keyWinner, &winner)
+		datastore.Put(ctx, &keyWinner, &winner)
 
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return

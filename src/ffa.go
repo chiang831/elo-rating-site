@@ -12,7 +12,6 @@ import (
 	"time"
 
 	"golang.org/x/net/context"
-	"google.golang.org/appengine"
 	"google.golang.org/appengine/datastore"
 	"google.golang.org/appengine/user"
 )
@@ -114,7 +113,7 @@ type FfaMatchResult struct {
 }
 
 func submitFfaMatchResult(w http.ResponseWriter, req *http.Request) {
-	ctx := appengine.NewContext(req)
+	ctx := req.Context()
 
 	decoder := json.NewDecoder(req.Body)
 	var matchResult FfaMatchResult
