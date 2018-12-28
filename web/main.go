@@ -7,7 +7,7 @@ import (
 	"net/http"
 	"os"
 
-	"github.com/chiang831/elo-rating-site/elo-rating-site/guestbook"
+	"github.com/chiang831/elo-rating-site/guestbook"
 )
 
 // [END import]
