@@ -15,7 +15,14 @@ const (
 	InitialFFAWins = 0
 	InitialWins    = 0
 	InitialLosses  = 0
-	InitialRating  = 1200
+
+	// Initial Elo Rating
+	InitialRating = 1200
+
+	// Initial Trueskill Parameter
+	InitialTrueSkillMu     = 25.0
+	InitialTrueSkillSigma  = 25.0 / 3.0
+	InitialTrueSkillRating = 0.0
 )
 
 // findExistingUser tries to find exiting user in the database that matches the
@@ -80,6 +87,24 @@ func readStatsWithID(ctx context.Context, tournamentID int64, userID int64) (
 	return true, keys[0], stats[0], nil
 }
 
+func calculateTrueSkillRating(mu float64, sigma float64) float64 {
+	return mu - 3*sigma
+}
+
+func createInitialUserStats(tournamentID int64, userID int64) UserTournamentStats {
+	return UserTournamentStats{
+		TournamentID:    tournamentID,
+		UserID:          userID,
+		FFAWins:         InitialFFAWins,
+		Wins:            InitialWins,
+		Losses:          InitialLosses,
+		Rating:          InitialRating,
+		TrueSkillMu:     InitialTrueSkillMu,
+		TrueSkillSigma:  InitialTrueSkillSigma,
+		TrueSkillRating: InitialTrueSkillRating,
+	}
+}
+
 // readOrCreateStatsWithID reads user stats with given IDs, and will create a
 // new default entry if the records does not exist yet.
 func readOrCreateStatsWithID(ctx context.Context, tournamentID int64, userID int64) (
@@ -103,17 +128,8 @@ func readOrCreateStatsWithID(ctx context.Context, tournamentID int64, userID int
 		}
 
 		incompleteKey := datastore.NewIncompleteKey(ctx, "UserTournamentStats", guestbookKey(ctx))
-		stats = UserTournamentStats{
-			TournamentID:    tournamentID,
-			UserID:          userID,
-			TrueSkillMu:     stats.TrueSkillMu,
-			TrueSkillSigma:  stats.TrueSkillSigma,
-			TrueSkillRating: stats.TrueSkillRating,
-			FFAWins:         InitialFFAWins,
-			Wins:            InitialWins,
-			Losses:          InitialLosses,
-			Rating:          InitialRating,
-		}
+
+		stats = createInitialUserStats(tournamentID, userID)
 
 		key, err = datastore.Put(ctx, incompleteKey, &stats)
 
