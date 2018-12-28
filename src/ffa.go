@@ -191,7 +191,9 @@ func submitFfaMatchResult(w http.ResponseWriter, req *http.Request) {
 
 		// prepare post-game user stats
 		postGameUserStatsList := make([]UserTournamentStats, len(preGameUserStatsList))
-		copy(preGameUserStatsList, postGameUserStatsList)
+
+		// copy from pre-game stats to post-game stats
+		copy(postGameUserStatsList, preGameUserStatsList)
 
 		for i := range postGameUserStatsList {
 			mu := postGamePlayers[i].Mu()
