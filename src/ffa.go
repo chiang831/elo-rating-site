@@ -8,7 +8,6 @@ import (
 	"net/http"
 	"path"
 	"sort"
-	"strings"
 	"time"
 
 	"golang.org/x/net/context"
@@ -243,20 +242,23 @@ func submitFfaMatchResult(w http.ResponseWriter, req *http.Request) {
 }
 
 func generateFFAMatchNote(players []string, draws []bool) string {
-	var sb strings.Builder
-	sb.WriteString("FFA game ranking: ")
+
+	// String Builder is only supported in go 1.10+
+	// var sb strings.Builder
+	// Will use slow string operation now
+	note := "FFA game ranking: "
 
 	for i := range players {
-		sb.WriteString(players[i])
+		note += players[i]
 		if i != len(players)-1 {
 			if draws[i] {
-				sb.WriteString(" = ")
+				note += " = "
 			} else {
-				sb.WriteString(" > ")
+				note += " > "
 			}
 		}
 	}
-	return sb.String()
+	return note
 }
 
 // readOrCreateUserTournamentStats will try to read users' stats for a given
