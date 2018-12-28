@@ -135,6 +135,7 @@ function submitRanking() {
     location.origin + "/submit_ffa_match_result",
     matchResult,
     function (responseText) {
+      // redirect to tournament stats page
       window.location.href = "/tournament/" + matchResult.Tournament;
     });
 }
