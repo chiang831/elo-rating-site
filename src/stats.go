@@ -8,6 +8,8 @@ import (
 	"golang.org/x/net/context"
 	"google.golang.org/appengine"
 	"google.golang.org/appengine/datastore"
+
+	trueskill "github.com/pg30123/go-trueskill"
 )
 
 // Constants for initial stats.
@@ -23,7 +25,21 @@ const (
 	InitialTrueSkillMu     = 25.0
 	InitialTrueSkillSigma  = 25.0 / 3.0
 	InitialTrueSkillRating = 0.0
+	DrawProbability        = 5.0 // setting draw probability to 5%, the library uses 0.0-100.0 instead of 0.0-1.0
 )
+
+// createTrueSkillConfig creates a TrueSkill config object with default values
+func createTrueSkillConfig() (trueskill.Config, error) {
+	drawProbabilityOption, err := trueskill.DrawProbability(DrawProbability)
+	if err != nil {
+		return trueskill.New(), err
+	}
+
+	return trueskill.New(
+		trueskill.Mu(InitialTrueSkillMu),
+		trueskill.Sigma(InitialTrueSkillSigma),
+		drawProbabilityOption), nil
+}
 
 // findExistingUser tries to find exiting user in the database that matches the
 // given username

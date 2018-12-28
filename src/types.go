@@ -102,6 +102,9 @@ type UserTournamentStats struct {
 
 // FFAMatch represents game results of a FFA multiplayer match
 type FFAMatch struct {
+	// Tournemant ID
+	TournamentID int64
+
 	// User ID of players, from first place to last place
 	Players []int64
 
@@ -121,6 +124,11 @@ type FFAMatch struct {
 	PostGameTrueSkillSigma  []float64
 	PostGameTrueSkillRating []float64
 
-	// Special notes for the game
-	Note string
+	// Probability of this match result, calculated by Trueskill
+	OutcomeProbability float64
+
+	// Additional information for the match result
+	Note           string
+	Submitter      string
+	SubmissionTime time.Time
 }
