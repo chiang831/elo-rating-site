@@ -134,23 +134,18 @@ func readOrCreateStatsWithID(ctx context.Context, tournamentID int64, userID int
 		return key, stats, nil
 	}
 
-	// create a new entry within a transaction
-	err = datastore.RunInTransaction(ctx, func(ctx context.Context) error {
-		exist, key, stats, err = readStatsWithID(ctx, tournamentID, userID)
-		if exist {
-			// there are multiple queries that were trying to create this entry,
-			// and it's now created by some other thread. We can now return stats.
-			return nil
-		}
+	exist, key, stats, err = readStatsWithID(ctx, tournamentID, userID)
+	if exist {
+		// there are multiple queries that were trying to create this entry,
+		// and it's now created by some other thread. We can now return stats.
+		return nil, UserTournamentStats{}, nil
+	}
 
-		incompleteKey := datastore.NewIncompleteKey(ctx, "UserTournamentStats", guestbookKey(ctx))
+	incompleteKey := datastore.NewIncompleteKey(ctx, "UserTournamentStats", guestbookKey(ctx))
 
-		stats = createInitialUserStats(tournamentID, userID)
+	stats = createInitialUserStats(tournamentID, userID)
 
-		key, err = datastore.Put(ctx, incompleteKey, &stats)
-
-		return err
-	}, nil)
+	key, err = datastore.Put(ctx, incompleteKey, &stats)
 
 	if err != nil {
 		return nil, UserTournamentStats{}, err

@@ -168,6 +168,11 @@ func submitFfaMatchResult(w http.ResponseWriter, req *http.Request) {
 		// read all user stats or create new entries if they do not exist yet
 		userStatsKeys, preGameUserStatsList, err := readOrCreateUserTournamentStats(
 			ctx, tournamentID, matchResult.Players)
+
+		if err != nil {
+			return err
+		}
+
 		var userIDs []int64
 		for _, userStatsKey := range userStatsKeys {
 			userIDs = append(userIDs, userStatsKey.IntID())
