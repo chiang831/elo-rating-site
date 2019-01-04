@@ -152,7 +152,7 @@ function fillInRecentMatches(r) {
 }
 
 function fillInRecentFFAMatches(r) {
-  recentFFAMatchesVue.data.matchWithKeys = JSON.parse(r);
+  recentFFAMatchesVue.matchWithKeys = JSON.parse(r);
 }
 
 function fillInGreetings(r) {
