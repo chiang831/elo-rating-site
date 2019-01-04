@@ -44,19 +44,28 @@
         <div class="Match">
           <h3>{{matchWithKey.Match.Note}}</h3>
           <div>Submitted by {{matchWithKey.Match.Submitter}}@{{getLocalTime(matchWithKey.Match.SubmissionTime)}}</div>
-          <div v-for="(name, index) in matchWithKey.Match.PlayerNames">
-            <span style="font-weight: bold;">{{name}} </span>
-            <span>Rating:&nbsp;&nbsp;&nbsp;&nbsp;</span>
-            <span>{{round(matchWithKey.Match.PreGameTrueSkillRating[index])}}</span>
-            <span v-bind:style="{color: getArrowColor(matchWithKey.Match.PreGameTrueSkillRating[index], matchWithKey.Match.PostGameTrueSkillRating[index])}">
-              ➨ </span>
-            <span>{{round(matchWithKey.Match.PostGameTrueSkillRating[index])}}</span>
-            <span>&nbsp;&nbsp;&nbsp;&nbsp;Mu:</span>
-            <span>{{round(matchWithKey.Match.PreGameTrueSkillMu[index])}}</span>
-            <span v-bind:style="{color: getArrowColor(matchWithKey.Match.PreGameTrueSkillMu[index], matchWithKey.Match.PostGameTrueSkillMu[index])}">
-              ➨ </span>
-            <span>{{round(matchWithKey.Match.PostGameTrueSkillMu[index])}}</span>
-          </div>
+          <table class="rating-change">
+            <tr>
+              <th>Player</th>
+              <th>Rating</th>
+              <th>Mu</th>
+            </tr>
+            <tr v-for="(name, index) in matchWithKey.Match.PlayerNames">
+              <td>{{name}}</td>
+              <td>
+                <span>{{round(matchWithKey.Match.PreGameTrueSkillRating[index])}}</span>
+                <span v-bind:style="{color: getArrowColor(matchWithKey.Match.PreGameTrueSkillRating[index], matchWithKey.Match.PostGameTrueSkillRating[index])}">
+                  ➨ </span>
+                <span>{{round(matchWithKey.Match.PostGameTrueSkillRating[index])}}</span>
+              </td>
+              <td>
+                <span>{{round(matchWithKey.Match.PreGameTrueSkillMu[index])}}</span>
+                <span v-bind:style="{color: getArrowColor(matchWithKey.Match.PreGameTrueSkillMu[index], matchWithKey.Match.PostGameTrueSkillMu[index])}">
+                  ➨ </span>
+                <span>{{round(matchWithKey.Match.PostGameTrueSkillMu[index])}}</span>
+              </td>
+            </tr>
+          </table>
         </div>
       </div>
     </div>
