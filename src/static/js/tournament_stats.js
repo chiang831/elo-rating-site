@@ -59,10 +59,9 @@ function fillInLeaderboard(r) {
   var leaderboard_table = document.getElementById("leaderboard");
   var content = "<tr>" +
     "<th>Player</th>" +
-    "<th><a href=\"https://en.wikipedia.org/wiki/Elo_rating_system\">ELO Rating</a></th>" +
+    "<th>TrueSkill rating</th>" +
     "<th>TrueSkill mu</th>" +
     "<th>TrueSkill sigma</th>" +
-    "<th>TrueSkill rating</th>" +
     "<th>FFA Wins</th>" +
     "<th>Wins</th>" +
     "<th>Losses</th>" +
@@ -77,10 +76,9 @@ function fillInLeaderboard(r) {
     }
     var row = "<tr>" +
       "<td><a href=\"/profile?user=" + user.Name + "\">" + user.Name + "</a></td>" +
-      "<td>" + Math.round(user.Rating) + "</td>" +
+      "<td>" + Math.round(user.TrueSkillRating * 100) / 100 + "</td>" +
       "<td>" + Math.round(user.TrueSkillMu * 100) / 100 + "</td>" +
       "<td>" + Math.round(user.TrueSkillSigma * 100) / 100 + "</td>" +
-      "<td>" + Math.round(user.TrueSkillRating * 100) / 100 + "</td>" +
       "<td>" + user.FFAWins + "</td>" +
       "<td>" + user.Wins + "</td>" +
       "<td>" + user.Losses + "</td>" +
