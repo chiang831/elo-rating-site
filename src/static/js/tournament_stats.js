@@ -19,6 +19,23 @@ function initVueElements() {
     el: '#recent_ffa_matches',
     data: {
       matchWithKeys: []
+    },
+    methods: {
+      getLocalTime(time) {
+        return new Date(time).toLocaleString()
+      },
+      getArrowColor(preGame, postGame) {
+        if (postGame < preGame) {
+          return 'red'
+        }
+        return 'green'
+      },
+      getRatingArrowColor(ffaMatch, i) {
+        return getArrowColor(ffaMatch.PreGameTrueSkillRating[i], ffaMatch.PostGameTrueSkillRating[i])
+      },
+      getMuArrowColor(ffaMatch, i) {
+        return getArrowColor(ffaMatch.PreGameTrueSkillMu[i], ffaMatch.PostGameTrueSkillMu[i])
+      }
     }
   })
 }
