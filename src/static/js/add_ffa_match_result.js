@@ -79,9 +79,10 @@ function initializePage() {
   });
 
   playerRankingList = new Vue({
-    el: '#ranking',
+    el: '#players',
     data: {
-      ranking: []
+      players: [],
+      draws: []
     }
   })
 
@@ -107,15 +108,15 @@ function addUser() {
   }
 
   // Check if the player is already added into the ranking
-  if (playerRankingList.ranking.includes(userSelector.selected)) {
+  if (playerRankingList.players.includes(userSelector.selected)) {
     alert("Player " + userSelector.selected + " is already in ranking list!");
     return;
   }
 
-  playerRankingList.ranking.push(userSelector.selected);
+  playerRankingList.players.push(userSelector.selected);
 }
 
-function submitRanking() {
+function submitResult() {
   if (!pageInitialized) {
     return;
   }
@@ -123,7 +124,8 @@ function submitRanking() {
   var matchResult = {
     // Fields must start with capital letters to fit golang requirement
     Tournament: tournamentSelector.selected,
-    Ranking: playerRankingList.ranking
+    Players: playerRankingList.players,
+    Draws: playerRankingList.draws
   };
 
   if (matchResult.Ranking.length < 2) {
