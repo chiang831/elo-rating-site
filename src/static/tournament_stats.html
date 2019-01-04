@@ -21,6 +21,18 @@
     <div id="show_leaderboard" style="display:block">
       <table id="leaderboard" style="width:40%;margin-left:auto;margin-right:auto"></table>
     </div>
+    <div onclick="show_hide('show_ffa_matches')"><h1>Recent FFA Matches</h1></div>
+    <div id="show_ffa_matches" style="display:block">
+      <p>Show <input type="text" size=2 value="30" id="num_ffa_matches"></input> matches.
+        <input type="button" value="Apply" onclick="getRecentFFAMatches()"></input></h2>
+      </p>
+      <div id="recent_ffa_matches">
+        <div v-for="matchWithKey in matchWithKeys" class="Match">
+          <h3>{{matchWithKey.Match.Note}}</h3>
+          <div>Submitted by {{matchWithKey.Match.Submitter}}@{{getTime(matchWithKey.Match.SubmissionTime)}}</div>
+        </div>
+      </div>
+    </div>
     <div onclick="show_hide('show_detail_results')"><h1>Detail Results</h1></div>
     <div id="show_detail_results" style="display:block">
       <table id="detail_result" style="width:80%;margin-left:auto;margin-right:auto"></table>

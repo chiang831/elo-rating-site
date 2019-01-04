@@ -1,14 +1,26 @@
 var tournament;
+var recentFFAMatchesVue;
 
 function onLoad() {
   tournament = getTournamentName();
   document.title = tournament + " tournament stats"
   document.getElementById("addMatchForm").action = "/tournament/" + tournament + "/add_ffa_match_result"
 
+  initVueElements();
   getLeaderboard();
   getDetailMatchResult();
   getRecentMatches();
   getGreetings();
+  getRecentFFAMatches();
+}
+
+function initVueElements() {
+  recentFFAMatchesVue = new Vue({
+    el: '#recent_ffa_matches',
+    data: {
+      matchWithKeys: []
+    }
+  })
 }
 
 function getTournamentName() {
@@ -29,6 +41,12 @@ function getRecentMatches() {
   var num_matches = document.getElementById("num_matches").value;
   var path = location.origin + "/request_recent_matches?num=" + num_matches + "&tournament=" + tournament
   httpGetAsync(path, fillInRecentMatches);
+}
+
+function getRecentFFAMatches() {
+  var num_matches = document.getElementById("num_ffa_matches").value;
+  var path = location.origin + "/request_recent_ffa_matches?num=" + num_matches + "&tournament=" + tournament
+  httpGetAsync(path, fillInRecentFFAMatches);
 }
 
 function getGreetings() {
@@ -131,6 +149,10 @@ function fillInRecentMatches(r) {
     content += match_div_str;
   }
   matches_div.innerHTML = content;
+}
+
+function fillInRecentFFAMatches(r) {
+  recentFFAMatchesVue.data.matchWithKeys = JSON.parse(r);
 }
 
 function fillInGreetings(r) {

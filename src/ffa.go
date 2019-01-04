@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"path"
 	"sort"
+	"strconv"
 	"time"
 
 	"golang.org/x/net/context"
@@ -294,4 +295,62 @@ func readOrCreateUserTournamentStats(
 	}
 
 	return userStatsKeys, userStats, nil
+}
+
+func requestRecentFFAMatches(w http.ResponseWriter, r *http.Request) {
+	ctx := appengine.NewContext(r)
+
+	// Get number of matches to retrieve
+	// If the number is not a positive integer, return nil
+	limit := -1
+	limitParam := r.FormValue("num")
+	if limitParam != "" {
+		newLimit, err := strconv.Atoi(limitParam)
+		if err == nil && newLimit > 0 {
+			limit = newLimit
+		}
+	}
+
+	tournamentName := r.FormValue("tournament")
+	if tournamentName == "" {
+		tournamentName = "Default"
+	}
+
+	tournamentKey, err := findExistingTournamentKey(ctx, tournamentName)
+	if err != nil {
+		http.Error(w, "Cannot find tournament "+tournamentName+": "+err.Error(), http.StatusUnprocessableEntity)
+		return
+	}
+
+	tournamentID := tournamentKey.IntID()
+
+	matchWithKeys := []FFAMatchWithKey{}
+	if limit != -1 {
+		query := datastore.NewQuery("FFAMatch").Ancestor(guestbookKey(ctx)).
+			Filter("TournamentID = ", tournamentID).
+			Order("-SubmissionTime").
+			Limit(limit)
+		var matches []FFAMatch
+		keys, err := query.GetAll(ctx, &matches)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+		matchWithKeys = make([]FFAMatchWithKey, len(matches))
+		for i, m := range matches {
+			matchWithKeys[i] = FFAMatchWithKey{
+				Match: m,
+				Key:   keys[i].Encode(),
+			}
+		}
+	}
+
+	js, errJs := json.Marshal(matchWithKeys)
+	if errJs != nil {
+		http.Error(w, errJs.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.Write(js)
 }

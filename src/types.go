@@ -132,3 +132,9 @@ type FFAMatch struct {
 	Submitter      string
 	SubmissionTime time.Time
 }
+
+// FFAMatchWithKey wrapper struct for datastore
+type FFAMatchWithKey struct {
+	Match FFAMatch
+	Key   string
+}

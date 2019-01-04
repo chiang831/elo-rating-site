@@ -46,6 +46,7 @@ func init() {
 	http.HandleFunc("/request_detail_results", requestDetailMatchResults)
 	http.HandleFunc("/request_greetings", requestGreetings)
 	http.HandleFunc("/request_recent_matches", requestRecentMatches)
+	http.HandleFunc("/request_recent_ffa_matches", requestRecentFFAMatches)
 	http.HandleFunc("/request_user_matches", requestUserMatches)
 	http.HandleFunc("/request_all_badges", requestAllBadges)
 	http.HandleFunc("/request_user_badges", requestUserBadges)
