@@ -128,8 +128,24 @@ function submitResult() {
     Draws: playerRankingList.draws
   };
 
-  if (matchResult.Ranking.length < 2) {
+  if (matchResult.Players.length < 2) {
     alert("At least 2 players are required in a FFA ranking!");
+    return;
+  }
+
+  var confirmMsg = "Submitting result: ";
+  for (const [i, player] of matchResult.Players.entries()) {
+    confirmMsg += player;
+    if (i < matchResult.Draws.length) {
+      if (matchResult.Draws[i]) {
+        confirmMsg += " = ";
+      } else {
+        confirmMsg += " > ";
+      }
+    }
+  }
+
+  if (window.confirm(confirmMsg) == false) {
     return;
   }
 
