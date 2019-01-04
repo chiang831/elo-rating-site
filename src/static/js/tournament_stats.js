@@ -150,6 +150,7 @@ function fillInRecentMatches(r) {
 }
 
 function fillInRecentFFAMatches(r) {
+  document.getElementById('recent_ffa_matches').style.display = 'block';
   recentFFAMatchesVue.matchWithKeys = JSON.parse(r);
 }
 

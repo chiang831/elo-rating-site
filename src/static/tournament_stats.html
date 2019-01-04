@@ -39,7 +39,7 @@
     <p>Show <input type="text" size=2 value="30" id="num_ffa_matches"></input> matches.
       <input type="button" value="Apply" onclick="getRecentFFAMatches()"></input></h2>
     </p>
-    <div id="recent_ffa_matches">
+    <div id="recent_ffa_matches" style="display: none;">
       <div v-for="matchWithKey in matchWithKeys">
         <div class="Match">
           <h3>{{matchWithKey.Match.Note}}</h3>
