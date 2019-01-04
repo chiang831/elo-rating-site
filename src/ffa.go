@@ -15,7 +15,7 @@ import (
 	"google.golang.org/appengine/datastore"
 	"google.golang.org/appengine/user"
 
-	trueskill "github.com/pg30123/go-trueskill"
+	trueskill "github.com/mafredri/go-trueskill"
 )
 
 func showAddFfaMatchResult(w http.ResponseWriter, r *http.Request) {

@@ -9,7 +9,7 @@ import (
 	"google.golang.org/appengine"
 	"google.golang.org/appengine/datastore"
 
-	trueskill "github.com/pg30123/go-trueskill"
+	trueskill "github.com/mafredri/go-trueskill"
 )
 
 // Constants for initial stats.
