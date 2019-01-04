@@ -375,10 +375,13 @@ func requestRecentFFAMatches(w http.ResponseWriter, r *http.Request) {
 	}
 
 	for _, matchWithKey := range matchWithKeys {
-		for _, playerID := range matchWithKey.Match.Players {
-			matchWithKey.Match.PlayerNames = append(matchWithKey.Match.PlayerNames, playerProfileMap[playerID].Name)
+		matchWithKey.Match.PlayerNames = make([]string, len(matchWithKey.Match.Players))
+		for i, playerID := range matchWithKey.Match.Players {
+			matchWithKey.Match.PlayerNames[i] = playerProfileMap[playerID].Name
 		}
 	}
+
+	// === END of translating id to names
 
 	js, errJs := json.Marshal(matchWithKeys)
 	if errJs != nil {
