@@ -29,7 +29,7 @@ indexes:
   ancestor: yes
   properties:
   - name: TournamentID
-  - name: TrueSkillRating
+  - name: Rating
     direction: desc
 - kind: Match
   properties:
@@ -41,4 +41,10 @@ indexes:
   properties:
   - name: Tournament
   - name: SubmissionTime
+    direction: desc
+- kind: UserTournamentStats
+  ancestor: yes
+  properties:
+  - name: TournamentID
+  - name: TrueSkillRating
     direction: desc
