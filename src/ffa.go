@@ -174,9 +174,9 @@ func submitFfaMatchResult(w http.ResponseWriter, req *http.Request) {
 			return err
 		}
 
-		var userIDs []int64
+		var userStatsIDs []int64
 		for _, userStatsKey := range userStatsKeys {
-			userIDs = append(userIDs, userStatsKey.IntID())
+			userStatsIDs = append(userStatsIDs, userStatsKey.IntID())
 		}
 
 		// prepare Player objects for TrueSkill calculation
@@ -212,6 +212,12 @@ func submitFfaMatchResult(w http.ResponseWriter, req *http.Request) {
 			if matchResult.Draws[i] == false {
 				break
 			}
+		}
+
+		userKeys, err := findUserKeys(ctx, matchResult.Players)
+		userIDs := make([]int64, len(userKeys))
+		for i := range userKeys {
+			userIDs[i] = userKeys[i].IntID()
 		}
 
 		// create FFAMatch Object to store in Datastore
