@@ -49,6 +49,7 @@
               <th>Player</th>
               <th>Rating</th>
               <th>Mu</th>
+              <th>Sigma</th>
             </tr>
             <tr v-for="(name, index) in matchWithKey.Match.PlayerNames">
               <td>{{name}}</td>
@@ -63,6 +64,12 @@
                 <span v-bind:style="{color: getArrowColor(matchWithKey.Match.PreGameTrueSkillMu[index], matchWithKey.Match.PostGameTrueSkillMu[index])}">
                   ➨ </span>
                 <span>{{round(matchWithKey.Match.PostGameTrueSkillMu[index])}}</span>
+              </td>
+              <td>
+              <span>{{round(matchWithKey.Match.PreGameTrueSkillSigma[index])}}</span>
+                <span>
+                  ➨ </span>
+                <span>{{round(matchWithKey.Match.PostGameTrueSkillSigma[index])}}</span>
               </td>
             </tr>
           </table>
