@@ -157,7 +157,7 @@ func readOrCreateStatsWithID(ctx context.Context, tournamentID int64, userID int
 func readAllUserStatsForTournament(ctx context.Context, tournamentID int64) ([]UserTournamentStats, error) {
 	query := datastore.NewQuery("UserTournamentStats").Ancestor(guestbookKey(ctx)).
 		Filter("TournamentID = ", tournamentID).
-		Order("-Rating")
+		Order("-TrueSkillRating")
 	var statsList []UserTournamentStats
 	if _, err := query.GetAll(ctx, &statsList); err != nil {
 		return nil, err

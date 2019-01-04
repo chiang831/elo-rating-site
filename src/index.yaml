@@ -29,7 +29,7 @@ indexes:
   ancestor: yes
   properties:
   - name: TournamentID
-  - name: Rating
+  - name: TrueSkillRating
     direction: desc
 - kind: Match
   properties:
