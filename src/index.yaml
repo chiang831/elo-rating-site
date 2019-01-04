@@ -39,7 +39,7 @@ indexes:
 - kind: FFAMatch
   ancestor: yes
   properties:
-  - name: Tournament
+  - name: TournamentID
   - name: SubmissionTime
     direction: desc
 - kind: UserTournamentStats
