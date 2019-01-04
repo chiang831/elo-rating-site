@@ -114,6 +114,9 @@ function addUser() {
   }
 
   playerRankingList.players.push(userSelector.selected);
+  if (playerRankingList.players.length > 1) {
+    playerRankingList.draws.push(false);
+  }
 }
 
 function submitResult() {
@@ -132,6 +135,8 @@ function submitResult() {
     alert("At least 2 players are required in a FFA ranking!");
     return;
   }
+
+  console.log("Preparing match result: " + matchResult);
 
   var confirmMsg = "Submitting result: ";
   for (const [i, player] of matchResult.Players.entries()) {
