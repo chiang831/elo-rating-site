@@ -8,6 +8,8 @@ import (
 	"golang.org/x/net/context"
 	"google.golang.org/appengine"
 	"google.golang.org/appengine/datastore"
+
+	trueskill "github.com/mafredri/go-trueskill"
 )
 
 // Constants for initial stats.
@@ -23,7 +25,21 @@ const (
 	InitialTrueSkillMu     = 25.0
 	InitialTrueSkillSigma  = 25.0 / 3.0
 	InitialTrueSkillRating = 0.0
+	DrawProbability        = 5.0 // setting draw probability to 5%, the library uses 0.0-100.0 instead of 0.0-1.0
 )
+
+// createTrueSkillConfig creates a TrueSkill config object with default values
+func createTrueSkillConfig() (trueskill.Config, error) {
+	drawProbabilityOption, err := trueskill.DrawProbability(DrawProbability)
+	if err != nil {
+		return trueskill.New(), err
+	}
+
+	return trueskill.New(
+		trueskill.Mu(InitialTrueSkillMu),
+		trueskill.Sigma(InitialTrueSkillSigma),
+		drawProbabilityOption), nil
+}
 
 // findExistingUser tries to find exiting user in the database that matches the
 // given username
@@ -118,23 +134,18 @@ func readOrCreateStatsWithID(ctx context.Context, tournamentID int64, userID int
 		return key, stats, nil
 	}
 
-	// create a new entry within a transaction
-	err = datastore.RunInTransaction(ctx, func(ctx context.Context) error {
-		exist, key, stats, err = readStatsWithID(ctx, tournamentID, userID)
-		if exist {
-			// there are multiple queries that were trying to create this entry,
-			// and it's now created by some other thread. We can now return stats.
-			return nil
-		}
+	exist, key, stats, err = readStatsWithID(ctx, tournamentID, userID)
+	if exist {
+		// there are multiple queries that were trying to create this entry,
+		// and it's now created by some other thread. We can now return stats.
+		return nil, UserTournamentStats{}, nil
+	}
 
-		incompleteKey := datastore.NewIncompleteKey(ctx, "UserTournamentStats", guestbookKey(ctx))
+	incompleteKey := datastore.NewIncompleteKey(ctx, "UserTournamentStats", guestbookKey(ctx))
 
-		stats = createInitialUserStats(tournamentID, userID)
+	stats = createInitialUserStats(tournamentID, userID)
 
-		key, err = datastore.Put(ctx, incompleteKey, &stats)
-
-		return err
-	}, nil)
+	key, err = datastore.Put(ctx, incompleteKey, &stats)
 
 	if err != nil {
 		return nil, UserTournamentStats{}, err
@@ -146,7 +157,7 @@ func readOrCreateStatsWithID(ctx context.Context, tournamentID int64, userID int
 func readAllUserStatsForTournament(ctx context.Context, tournamentID int64) ([]UserTournamentStats, error) {
 	query := datastore.NewQuery("UserTournamentStats").Ancestor(guestbookKey(ctx)).
 		Filter("TournamentID = ", tournamentID).
-		Order("-Rating")
+		Order("-TrueSkillRating")
 	var statsList []UserTournamentStats
 	if _, err := query.GetAll(ctx, &statsList); err != nil {
 		return nil, err

@@ -8,13 +8,15 @@ import (
 	"net/http"
 	"path"
 	"sort"
-	"strings"
+	"strconv"
 	"time"
 
 	"golang.org/x/net/context"
 	"google.golang.org/appengine"
 	"google.golang.org/appengine/datastore"
 	"google.golang.org/appengine/user"
+
+	trueskill "github.com/mafredri/go-trueskill"
 )
 
 func showAddFfaMatchResult(w http.ResponseWriter, r *http.Request) {
@@ -108,9 +110,14 @@ func Generate1v1MatchResults(numPlayers int) []MathcResult1v1 {
 // FfaMatchResult represents an FFA game match result, which will be in json
 // format within the http post request this should match the format in
 // add_ffa_match_result.js
+//
+// Note that this struct is only used to communicate with frontend, and is
+// different from th FFAMatch object in types.go, which is used to store in
+// Datastore.
 type FfaMatchResult struct {
 	Tournament string
-	Ranking    []string // player name from first place to last place
+	Players    []string // player name from first place to last place
+	Draws      []bool
 }
 
 func submitFfaMatchResult(w http.ResponseWriter, req *http.Request) {
@@ -120,54 +127,119 @@ func submitFfaMatchResult(w http.ResponseWriter, req *http.Request) {
 	var matchResult FfaMatchResult
 	err := decoder.Decode(&matchResult)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 
-	log.Printf("matchResult: %+v\n", matchResult)
+	log.Printf("Received matchResult: %+v\n", matchResult)
 
-	userStatsKeys, userStats, err := readOrCreateUserTournamentStats(ctx, matchResult.Tournament, matchResult.Ranking)
+	// length of players and draws must be different by 1
+	if len(matchResult.Players)-1 != len(matchResult.Draws) {
+		http.Error(w,
+			fmt.Sprintf("Request contains %d Players and %d Draws, it should be N and N-1 instead.",
+				len(matchResult.Players), len(matchResult.Draws)),
+			http.StatusUnprocessableEntity)
+		return
+	}
 
-	// Create match entry
+	tournamentKey, err := findExistingTournamentKey(ctx, matchResult.Tournament)
+	if err != nil {
+		http.Error(w,
+			fmt.Sprintf("Failed to find tournament %s: %s",
+				matchResult.Tournament, err.Error()),
+			http.StatusUnprocessableEntity)
+		return
+	}
+	tournamentID := tournamentKey.IntID()
+
+	// Additional information to be stored in match history
 	submitter := user.Current(ctx).String()
-	note := fmt.Sprintf(
-		"FFA game ranking: [%s]",
-		strings.Join(matchResult.Ranking, ", "))
+	note := generateFFAMatchNote(matchResult.Players, matchResult.Draws)
 
-	// Do all updates within a transaction
+	// TrueSkill game config
+	ts, err := createTrueSkillConfig()
+
+	if err != nil {
+		http.Error(w, "Failed to create TrueSkill config: "+err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	// do all updates within a transaction to avoid race conditions
 	err = datastore.RunInTransaction(ctx, func(ctx context.Context) error {
-		// Process all emulated 1v1 results
-		for _, generated1v1 := range Generate1v1MatchResults(len(matchResult.Ranking)) {
-			winner := &userStats[generated1v1.winner]
-			loser := &userStats[generated1v1.loser]
-			winnerName := matchResult.Ranking[generated1v1.winner]
-			loserName := matchResult.Ranking[generated1v1.loser]
+		// read all user stats or create new entries if they do not exist yet
+		userStatsKeys, preGameUserStatsList, err := readOrCreateUserTournamentStats(
+			ctx, tournamentID, matchResult.Players)
 
-			match := createMatch(
-				winner.Rating, loser.Rating,
-				winnerName, loserName,
-				matchResult.Tournament, submitter, note, time.Now())
+		if err != nil {
+			return err
+		}
 
-			// Update wins, losses, and rating
-			winner.Wins++
-			winner.Rating = match.WinnerRatingAfter
-			loser.Losses++
-			loser.Rating = match.LoserRatingAfter
+		var userStatsIDs []int64
+		for _, userStatsKey := range userStatsKeys {
+			userStatsIDs = append(userStatsIDs, userStatsKey.IntID())
+		}
 
-			// Insert match entry
-			key := datastore.NewIncompleteKey(ctx, "Match", guestbookKey(ctx))
-			_, err = datastore.Put(ctx, key, &match)
-			if err != nil {
-				return err
+		// prepare Player objects for TrueSkill calculation
+		var preGamePlayers []trueskill.Player
+		for _, userStats := range preGameUserStatsList {
+			preGamePlayers = append(
+				preGamePlayers,
+				trueskill.NewPlayer(userStats.TrueSkillMu, userStats.TrueSkillSigma))
+		}
+
+		// run actual TrueSkill update calculation
+		postGamePlayers, outcomeProbability := ts.AdjustSkillsWithDraws(preGamePlayers, matchResult.Draws)
+
+		// prepare post-game user stats
+		postGameUserStatsList := make([]UserTournamentStats, len(preGameUserStatsList))
+
+		// copy from pre-game stats to post-game stats
+		copy(postGameUserStatsList, preGameUserStatsList)
+
+		for i := range postGameUserStatsList {
+			mu := postGamePlayers[i].Mu()
+			sigma := postGamePlayers[i].Sigma()
+			postGameUserStatsList[i].TrueSkillMu = mu
+			postGameUserStatsList[i].TrueSkillSigma = sigma
+			postGameUserStatsList[i].TrueSkillRating = calculateTrueSkillRating(mu, sigma)
+		}
+
+		// First players (potentially tied) will get one more FFAWins
+		for i := range postGameUserStatsList {
+			postGameUserStatsList[i].FFAWins++
+
+			// If not draw with next player, break
+			if matchResult.Draws[i] == false {
+				break
 			}
 		}
 
-		// First player should get ++ for FFA Win
-		userStats[0].FFAWins++
+		userKeys, err := findUserKeys(ctx, matchResult.Players)
+		userIDs := make([]int64, len(userKeys))
+		for i := range userKeys {
+			userIDs[i] = userKeys[i].IntID()
+		}
 
-		// Now update user stats for each user
+		// create FFAMatch Object to store in Datastore
+		ffaMatch := createFFAMatch(
+			tournamentID,
+			userIDs,
+			matchResult.Draws,
+			preGameUserStatsList,
+			postGameUserStatsList,
+			outcomeProbability,
+			note,
+			submitter,
+			time.Now())
+
+		// store FFAMatch into datastore
+		if err := insertFFAMatch(ctx, ffaMatch); err != nil {
+			return nil
+		}
+
+		// Update user stats for each user
 		for i, statsKey := range userStatsKeys {
-			if _, err = datastore.Put(ctx, statsKey, &userStats[i]); err != nil {
+			if _, err = datastore.Put(ctx, statsKey, &postGameUserStatsList[i]); err != nil {
 				return err
 			}
 		}
@@ -183,19 +255,33 @@ func submitFfaMatchResult(w http.ResponseWriter, req *http.Request) {
 	// return nothing if successful
 }
 
+func generateFFAMatchNote(players []string, draws []bool) string {
+
+	// String Builder is only supported in go 1.10+
+	// var sb strings.Builder
+	// Will use slow string operation now
+	note := ""
+
+	for i := range players {
+		note += players[i]
+		if i != len(players)-1 {
+			if draws[i] {
+				note += " = "
+			} else {
+				note += " > "
+			}
+		}
+	}
+	return note
+}
+
 // readOrCreateUserTournamentStats will try to read users' stats for a given
 // tournament, if the specified user have no record in the specified tournament,
 // a new record with default values will be created.
 func readOrCreateUserTournamentStats(
 	ctx context.Context,
-	tournamentName string,
+	tournamentID int64,
 	userNames []string) ([]*datastore.Key, []UserTournamentStats, error) {
-
-	tournamentKey, err := findExistingTournamentKey(ctx, tournamentName)
-
-	if err != nil {
-		return nil, nil, err
-	}
 
 	userKeys, err := findUserKeys(ctx, userNames)
 
@@ -208,11 +294,101 @@ func readOrCreateUserTournamentStats(
 
 	// Read user stats or create initial values
 	for i, userKey := range userKeys {
-		userStatsKeys[i], userStats[i], err = readOrCreateStatsWithID(ctx, tournamentKey.IntID(), userKey.IntID())
+		userStatsKeys[i], userStats[i], err = readOrCreateStatsWithID(ctx, tournamentID, userKey.IntID())
 		if err != nil {
 			return nil, nil, err
 		}
 	}
 
 	return userStatsKeys, userStats, nil
+}
+
+func requestRecentFFAMatches(w http.ResponseWriter, r *http.Request) {
+	ctx := appengine.NewContext(r)
+
+	// Get number of matches to retrieve
+	// If the number is not a positive integer, return nil
+	limit := -1
+	limitParam := r.FormValue("num")
+	if limitParam != "" {
+		newLimit, err := strconv.Atoi(limitParam)
+		if err == nil && newLimit > 0 {
+			limit = newLimit
+		}
+	}
+
+	tournamentName := r.FormValue("tournament")
+	if tournamentName == "" {
+		tournamentName = "Default"
+	}
+
+	tournamentKey, err := findExistingTournamentKey(ctx, tournamentName)
+	if err != nil {
+		http.Error(w, "Cannot find tournament "+tournamentName+": "+err.Error(), http.StatusUnprocessableEntity)
+		return
+	}
+
+	tournamentID := tournamentKey.IntID()
+
+	matchWithKeys := []FFAMatchWithKey{}
+	if limit != -1 {
+		query := datastore.NewQuery("FFAMatch").Ancestor(guestbookKey(ctx)).
+			Filter("TournamentID = ", tournamentID).
+			Order("-SubmissionTime").
+			Limit(limit)
+		var matches []FFAMatch
+		keys, err := query.GetAll(ctx, &matches)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+		matchWithKeys = make([]FFAMatchWithKey, len(matches))
+		for i, m := range matches {
+			matchWithKeys[i] = FFAMatchWithKey{
+				Match: m,
+				Key:   keys[i].Encode(),
+			}
+		}
+	}
+
+	// ========= translate player id to player name
+
+	playerIDMap := make(map[int64]bool)
+	for _, matchWithKey := range matchWithKeys {
+		for _, playerID := range matchWithKey.Match.Players {
+			playerIDMap[playerID] = true
+		}
+	}
+
+	playerIDs := make([]int64, len(playerIDMap))
+	i := 0
+	for id := range playerIDMap {
+		playerIDs[i] = id
+		i++
+	}
+
+	playerProfileMap, err := readUserIDAndProfileMapping(ctx, playerIDs)
+
+	if err != nil {
+		http.Error(w, "Failed to translate player id to names: "+err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	for i := range matchWithKeys {
+		matchWithKeys[i].Match.PlayerNames = make([]string, len(matchWithKeys[i].Match.Players))
+		for j, playerID := range matchWithKeys[i].Match.Players {
+			matchWithKeys[i].Match.PlayerNames[j] = playerProfileMap[playerID].Name
+		}
+	}
+
+	// === END of translating id to names
+
+	js, errJs := json.Marshal(matchWithKeys)
+	if errJs != nil {
+		http.Error(w, errJs.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.Write(js)
 }

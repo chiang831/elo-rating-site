@@ -79,9 +79,10 @@ function initializePage() {
   });
 
   playerRankingList = new Vue({
-    el: '#ranking',
+    el: '#players',
     data: {
-      ranking: []
+      players: [],
+      draws: []
     }
   })
 
@@ -107,15 +108,18 @@ function addUser() {
   }
 
   // Check if the player is already added into the ranking
-  if (playerRankingList.ranking.includes(userSelector.selected)) {
+  if (playerRankingList.players.includes(userSelector.selected)) {
     alert("Player " + userSelector.selected + " is already in ranking list!");
     return;
   }
 
-  playerRankingList.ranking.push(userSelector.selected);
+  playerRankingList.players.push(userSelector.selected);
+  if (playerRankingList.players.length > 1) {
+    playerRankingList.draws.push(false);
+  }
 }
 
-function submitRanking() {
+function submitResult() {
   if (!pageInitialized) {
     return;
   }
@@ -123,11 +127,31 @@ function submitRanking() {
   var matchResult = {
     // Fields must start with capital letters to fit golang requirement
     Tournament: tournamentSelector.selected,
-    Ranking: playerRankingList.ranking
+    Players: playerRankingList.players,
+    Draws: playerRankingList.draws
   };
 
-  if (matchResult.Ranking.length < 2) {
+  if (matchResult.Players.length < 2) {
     alert("At least 2 players are required in a FFA ranking!");
+    return;
+  }
+
+  console.log("Preparing match result: ");
+  console.log(matchResult);
+
+  var confirmMsg = "Submitting result: ";
+  for (const [i, player] of matchResult.Players.entries()) {
+    confirmMsg += player;
+    if (i < matchResult.Draws.length) {
+      if (matchResult.Draws[i]) {
+        confirmMsg += " = ";
+      } else {
+        confirmMsg += " > ";
+      }
+    }
+  }
+
+  if (window.confirm(confirmMsg) == false) {
     return;
   }
 
@@ -135,6 +159,7 @@ function submitRanking() {
     location.origin + "/submit_ffa_match_result",
     matchResult,
     function (responseText) {
+      // redirect to tournament stats page
       window.location.href = "/tournament/" + matchResult.Tournament;
     });
 }

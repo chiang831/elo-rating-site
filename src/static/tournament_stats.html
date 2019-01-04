@@ -1,52 +1,109 @@
 <!DOCTYPE html>
 <html>
-  <head>
-    <title>Tournament Stats</title>
-    <link type="text/css" rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
-    <link type="text/css" rel="stylesheet" href="/static/styles.css">
-    <script src="/static/js/http.js" async=true></script>
-    <script src="/static/js/tournament_stats.js" async=true></script>
-  </head>
-  <body onload="onLoad()">
-    <h2><form action="/tournament">
+
+<head>
+  <title>Tournament Stats</title>
+  <link type="text/css" rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+  <link type="text/css" rel="stylesheet" href="/static/styles.css">
+  <script src="https://unpkg.com/vue@latest"></script>
+  <script src="/static/js/http.js" async=true></script>
+  <script src="/static/js/tournament_stats.js" async=true></script>
+</head>
+
+<body onload="onLoad()">
+  <h2>
+    <form action="/tournament">
       <button type="submit" class="btn-success">Tournaments</button>
-    </form></h2>
-    <h2><form action="/add_user">
+    </form>
+  </h2>
+  <h2>
+    <form action="/add_user">
       <button type="submit" class="btn-success">Add a Player</button>
-    </form></h2>
-    <h2><form id="addMatchForm">
-        <button type="submit" class="btn-success">Add a Match Result</button>
-    </form></h2>
-    <div onclick="show_hide('show_leaderboard')"><h1>Leaderboard</h1></div>
-    <div id="show_leaderboard" style="display:block">
-      <table id="leaderboard" style="width:40%;margin-left:auto;margin-right:auto"></table>
+    </form>
+  </h2>
+  <h2>
+    <form id="addMatchForm">
+      <button type="submit" class="btn-success">Add a Match Result</button>
+    </form>
+  </h2>
+  <div onclick="show_hide('show_leaderboard')">
+    <h1>Leaderboard</h1>
+  </div>
+  <div id="show_leaderboard" style="display:block">
+    <table id="leaderboard" style="width:40%;margin-left:auto;margin-right:auto"></table>
+  </div>
+  <div onclick="show_hide('show_ffa_matches')">
+    <h1>Recent FFA Matches</h1>
+  </div>
+  <div id="show_ffa_matches" style="display:block">
+    <p>Show <input type="text" size=2 value="30" id="num_ffa_matches"></input> matches.
+      <input type="button" value="Apply" onclick="getRecentFFAMatches()"></input></h2>
+    </p>
+    <div id="recent_ffa_matches" style="display: none;">
+      <div v-for="matchWithKey in matchWithKeys">
+        <div class="Match">
+          <h3>{{matchWithKey.Match.Note}}</h3>
+          <div>Submitted by {{matchWithKey.Match.Submitter}}@{{getLocalTime(matchWithKey.Match.SubmissionTime)}}</div>
+          <table class="rating-change">
+            <tr>
+              <th>Player</th>
+              <th>Rating</th>
+              <th>Mu</th>
+            </tr>
+            <tr v-for="(name, index) in matchWithKey.Match.PlayerNames">
+              <td>{{name}}</td>
+              <td>
+                <span>{{round(matchWithKey.Match.PreGameTrueSkillRating[index])}}</span>
+                <span v-bind:style="{color: getArrowColor(matchWithKey.Match.PreGameTrueSkillRating[index], matchWithKey.Match.PostGameTrueSkillRating[index])}">
+                  ➨ </span>
+                <span>{{round(matchWithKey.Match.PostGameTrueSkillRating[index])}}</span>
+              </td>
+              <td>
+                <span>{{round(matchWithKey.Match.PreGameTrueSkillMu[index])}}</span>
+                <span v-bind:style="{color: getArrowColor(matchWithKey.Match.PreGameTrueSkillMu[index], matchWithKey.Match.PostGameTrueSkillMu[index])}">
+                  ➨ </span>
+                <span>{{round(matchWithKey.Match.PostGameTrueSkillMu[index])}}</span>
+              </td>
+            </tr>
+          </table>
+        </div>
+      </div>
     </div>
-    <div onclick="show_hide('show_detail_results')"><h1>Detail Results</h1></div>
-    <div id="show_detail_results" style="display:block">
-      <table id="detail_result" style="width:80%;margin-left:auto;margin-right:auto"></table>
-    </div>
-    <div onclick="show_hide('show_matches')"><h1>Recent Matches</h1></div>
-    <div id="show_matches" style="display:block">
-      <p>Show <input type="text" size=2 value="30" id="num_matches"></input> matches.
-        <input type="button" value="Apply" onclick="getRecentMatches()"></input></h2>
-      </p>
-      <div id="matches"></div>
-    </div>
-    <div onclick="show_hide('show_greetings')"><h1>Recent Comments</h1></div>
-    <div id="show_greetings" style="display:block">
-      <form action="/submit_greeting" method="post">
-        <p><textarea name="content" rows="3" cols="60"></textarea></p>
-        <p>
+  </div>
+  <div onclick="show_hide('show_detail_results')">
+    <h1>Detail Results</h1>
+  </div>
+  <div id="show_detail_results" style="display:block">
+    <table id="detail_result" style="width:80%;margin-left:auto;margin-right:auto"></table>
+  </div>
+  <div onclick="show_hide('show_matches')">
+    <h1>Recent Matches</h1>
+  </div>
+  <div id="show_matches" style="display:block">
+    <p>Show <input type="text" size=2 value="30" id="num_matches"></input> matches.
+      <input type="button" value="Apply" onclick="getRecentMatches()"></input></h2>
+    </p>
+    <div id="matches"></div>
+  </div>
+  <div onclick="show_hide('show_greetings')">
+    <h1>Recent Comments</h1>
+  </div>
+  <div id="show_greetings" style="display:block">
+    <form action="/submit_greeting" method="post">
+      <p><textarea name="content" rows="3" cols="60"></textarea></p>
+      <p>
         <h2><button type="submit" class="btn-success">Add comment</button></h2>
-        </p>
-      </form>
-      <p>Show <input type="text" size=2 value="10" id="num_greetings"></input> comments.
-        <input type="button" value="Apply" onclick="getGreetings()"> </input></h2>
       </p>
-      <div id="greetings"></div>
-    </div>
-  </body>
-  <foot>
-  Font credit: The FontStruction <a href="https://fontstruct.com/fontstructions/show/389448">Tetrominoes</a> by tp2-marriott
-  </foot>
+    </form>
+    <p>Show <input type="text" size=2 value="10" id="num_greetings"></input> comments.
+      <input type="button" value="Apply" onclick="getGreetings()"> </input></h2>
+    </p>
+    <div id="greetings"></div>
+  </div>
+</body>
+<foot>
+  Font credit: The FontStruction <a href="https://fontstruct.com/fontstructions/show/389448">Tetrominoes</a> by
+  tp2-marriott
+</foot>
+
 </html>

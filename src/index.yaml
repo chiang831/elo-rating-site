@@ -36,3 +36,15 @@ indexes:
   - name: Tournament
   - name: Date
     direction: desc
+- kind: FFAMatch
+  ancestor: yes
+  properties:
+  - name: TournamentID
+  - name: SubmissionTime
+    direction: desc
+- kind: UserTournamentStats
+  ancestor: yes
+  properties:
+  - name: TournamentID
+  - name: TrueSkillRating
+    direction: desc

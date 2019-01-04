@@ -1,14 +1,40 @@
 var tournament;
+var recentFFAMatchesVue;
 
 function onLoad() {
   tournament = getTournamentName();
   document.title = tournament + " tournament stats"
   document.getElementById("addMatchForm").action = "/tournament/" + tournament + "/add_ffa_match_result"
 
+  initVueElements();
   getLeaderboard();
   getDetailMatchResult();
   getRecentMatches();
   getGreetings();
+  getRecentFFAMatches();
+}
+
+function initVueElements() {
+  recentFFAMatchesVue = new Vue({
+    el: '#recent_ffa_matches',
+    data: {
+      matchWithKeys: []
+    },
+    methods: {
+      getLocalTime(time) {
+        return new Date(time).toLocaleString()
+      },
+      getArrowColor(preGame, postGame) {
+        if (postGame < preGame) {
+          return 'red'
+        }
+        return 'green'
+      },
+      round(num) {
+        return Math.round(num * 100) / 100
+      }
+    }
+  })
 }
 
 function getTournamentName() {
@@ -31,6 +57,12 @@ function getRecentMatches() {
   httpGetAsync(path, fillInRecentMatches);
 }
 
+function getRecentFFAMatches() {
+  var num_matches = document.getElementById("num_ffa_matches").value;
+  var path = location.origin + "/request_recent_ffa_matches?num=" + num_matches + "&tournament=" + tournament
+  httpGetAsync(path, fillInRecentFFAMatches);
+}
+
 function getGreetings() {
   var num_greeting = document.getElementById("num_greetings").value;
   httpGetAsync(location.origin + "/request_greetings?num=" + num_greeting, fillInGreetings);
@@ -41,10 +73,9 @@ function fillInLeaderboard(r) {
   var leaderboard_table = document.getElementById("leaderboard");
   var content = "<tr>" +
     "<th>Player</th>" +
-    "<th><a href=\"https://en.wikipedia.org/wiki/Elo_rating_system\">ELO Rating</a></th>" +
+    "<th>TrueSkill rating</th>" +
     "<th>TrueSkill mu</th>" +
     "<th>TrueSkill sigma</th>" +
-    "<th>TrueSkill rating</th>" +
     "<th>FFA Wins</th>" +
     "<th>Wins</th>" +
     "<th>Losses</th>" +
@@ -59,10 +90,9 @@ function fillInLeaderboard(r) {
     }
     var row = "<tr>" +
       "<td><a href=\"/profile?user=" + user.Name + "\">" + user.Name + "</a></td>" +
-      "<td>" + Math.round(user.Rating) + "</td>" +
+      "<td>" + Math.round(user.TrueSkillRating * 100) / 100 + "</td>" +
       "<td>" + Math.round(user.TrueSkillMu * 100) / 100 + "</td>" +
       "<td>" + Math.round(user.TrueSkillSigma * 100) / 100 + "</td>" +
-      "<td>" + Math.round(user.TrueSkillRating * 100) / 100 + "</td>" +
       "<td>" + user.FFAWins + "</td>" +
       "<td>" + user.Wins + "</td>" +
       "<td>" + user.Losses + "</td>" +
@@ -131,6 +161,11 @@ function fillInRecentMatches(r) {
     content += match_div_str;
   }
   matches_div.innerHTML = content;
+}
+
+function fillInRecentFFAMatches(r) {
+  document.getElementById('recent_ffa_matches').style.display = 'block';
+  recentFFAMatchesVue.matchWithKeys = JSON.parse(r);
 }
 
 function fillInGreetings(r) {

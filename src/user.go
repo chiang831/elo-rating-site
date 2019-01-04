@@ -33,3 +33,17 @@ func readUserProfiles(ctx context.Context, userIDs []int64) ([]UserProfile, erro
 	}
 	return profiles, nil
 }
+
+func readUserIDAndProfileMapping(ctx context.Context, userIDs []int64) (map[int64]UserProfile, error) {
+	profiles, err := readUserProfiles(ctx, userIDs)
+
+	if err != nil {
+		return nil, err
+	}
+
+	m := make(map[int64]UserProfile)
+	for i, profile := range profiles {
+		m[userIDs[i]] = profile
+	}
+	return m, nil
+}

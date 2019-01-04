@@ -102,8 +102,15 @@ type UserTournamentStats struct {
 
 // FFAMatch represents game results of a FFA multiplayer match
 type FFAMatch struct {
+	// Tournemant ID
+	TournamentID int64
+
 	// User ID of players, from first place to last place
 	Players []int64
+
+	// Name of the players. This field is only used when returning results to
+	// frontned to display player names. It should not be used in the backend.
+	PlayerNames []string
 
 	// An array indicating draw results between players.
 	// If Ranking has N emelements (N-Player game), Draws should have N-1
@@ -121,6 +128,17 @@ type FFAMatch struct {
 	PostGameTrueSkillSigma  []float64
 	PostGameTrueSkillRating []float64
 
-	// Special notes for the game
-	Note string
+	// Probability of this match result, calculated by Trueskill
+	OutcomeProbability float64
+
+	// Additional information for the match result
+	Note           string
+	Submitter      string
+	SubmissionTime time.Time
+}
+
+// FFAMatchWithKey wrapper struct for datastore
+type FFAMatchWithKey struct {
+	Match FFAMatch
+	Key   string
 }
