@@ -345,6 +345,35 @@ func requestRecentFFAMatches(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
+	// ========= translate player id to player name
+
+	playerIDMap := make(map[int64]bool)
+	for _, matchWithKey := range matchWithKeys {
+		for _, playerID := range matchWithKey.Match.Players {
+			playerIDMap[playerID] = true
+		}
+	}
+
+	playerIDs := make([]int64, len(playerIDMap))
+	i := 0
+	for id := range playerIDMap {
+		playerIDs[i] = id
+		i++
+	}
+
+	playerProfileMap, err := readUserIDAndProfileMapping(ctx, playerIDs)
+
+	if err != nil {
+		http.Error(w, "Failed to translate player id to names: "+err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	for _, matchWithKey := range matchWithKeys {
+		for _, playerID := range matchWithKey.Match.Players {
+			matchWithKey.Match.PlayerNames = append(matchWithKey.Match.PlayerNames, playerProfileMap[playerID].Name)
+		}
+	}
+
 	js, errJs := json.Marshal(matchWithKeys)
 	if errJs != nil {
 		http.Error(w, errJs.Error(), http.StatusInternalServerError)
