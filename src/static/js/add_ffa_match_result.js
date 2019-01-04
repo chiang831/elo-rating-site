@@ -136,7 +136,8 @@ function submitResult() {
     return;
   }
 
-  console.log("Preparing match result: " + matchResult);
+  console.log("Preparing match result: ");
+  console.log(matchResult);
 
   var confirmMsg = "Submitting result: ";
   for (const [i, player] of matchResult.Players.entries()) {
