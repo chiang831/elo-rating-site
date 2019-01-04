@@ -254,7 +254,7 @@ func generateFFAMatchNote(players []string, draws []bool) string {
 	// String Builder is only supported in go 1.10+
 	// var sb strings.Builder
 	// Will use slow string operation now
-	note := "FFA game ranking: "
+	note := ""
 
 	for i := range players {
 		note += players[i]
