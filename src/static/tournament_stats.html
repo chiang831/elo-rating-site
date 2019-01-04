@@ -44,17 +44,18 @@
         <div class="Match">
           <h3>{{matchWithKey.Match.Note}}</h3>
           <div>Submitted by {{matchWithKey.Match.Submitter}}@{{getLocalTime(matchWithKey.Match.SubmissionTime)}}</div>
-          <div v-for="(player, index) in matchWithKey.Match.Players"></div>
-          <div>
+          <div v-for="(player, index) in matchWithKey.Match.Players">
             <span style="font-weight: bold;">{{player}} </span>
-            <span>Rating:</span>
-            <span>{{matchWithKey.Match.PreGameTrueSkillRating[index]}}</span>
-            <span v-bind:style="{color: getRatingArrowColor(matchWithKey.Match, index)}"> ➨ </span>
-            <span>{{matchWithKey.Match.PostGameTrueSkillRating[index]}}</span></span>
-            <span>  Mu:</span>
-            <span>{{matchWithKey.Match.PreGameTrueSkillMu[index]}}</span>
-            <span v-bind:style="{color: getMuArrowColor(matchWithKey.Match, index)}"> ➨ </span>
-            <span>{{matchWithKey.Match.PostGameTrueSkillMu[index]}}</span></span>
+            <span>Rating:&nbsp;&nbsp;&nbsp;&nbsp;</span>
+            <span>{{round(matchWithKey.Match.PreGameTrueSkillRating[index])}}</span>
+            <span v-bind:style="{color: getArrowColor(matchWithKey.Match.PreGameTrueSkillRating[index], matchWithKey.Match.PostGameTrueSkillRating[index])}">
+              ➨ </span>
+            <span>{{round(matchWithKey.Match.PostGameTrueSkillRating[index])}}</span>
+            <span>&nbsp;&nbsp;&nbsp;&nbsp;Mu:</span>
+            <span>{{round(matchWithKey.Match.PreGameTrueSkillMu[index])}}</span>
+            <span v-bind:style="{color: getArrowColor(matchWithKey.Match.PreGameTrueSkillMu[index], matchWithKey.Match.PostGameTrueSkillMu[index])}">
+              ➨ </span>
+            <span>{{round(matchWithKey.Match.PostGameTrueSkillMu[index])}}</span>
           </div>
         </div>
       </div>

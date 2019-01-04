@@ -30,11 +30,8 @@ function initVueElements() {
         }
         return 'green'
       },
-      getRatingArrowColor(ffaMatch, i) {
-        return getArrowColor(ffaMatch.PreGameTrueSkillRating[i], ffaMatch.PostGameTrueSkillRating[i])
-      },
-      getMuArrowColor(ffaMatch, i) {
-        return getArrowColor(ffaMatch.PreGameTrueSkillMu[i], ffaMatch.PostGameTrueSkillMu[i])
+      round(num) {
+        return Math.round(num * 100) / 100
       }
     }
   })

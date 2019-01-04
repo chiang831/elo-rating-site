@@ -108,6 +108,10 @@ type FFAMatch struct {
 	// User ID of players, from first place to last place
 	Players []int64
 
+	// Name of the players. This field is only used when returning results to
+	// frontned to display player names. It should not be used in the backend.
+	PlayerNames []string
+
 	// An array indicating draw results between players.
 	// If Ranking has N emelements (N-Player game), Draws should have N-1
 	// elements, where Draws[i] indicates whether Player[i] and Player[i+1]
