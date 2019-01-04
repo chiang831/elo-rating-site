@@ -30,7 +30,7 @@
       <div id="recent_ffa_matches">
         <div v-for="matchWithKey in matchWithKeys" class="Match">
           <h3>{{matchWithKey.Match.Note}}</h3>
-          <div>Submitted by {{matchWithKey.Match.Submitter}}@{{new Date(matchWithKey.Match.SubmissionTime.toLocaleString()}}</div>
+          <div>Submitted by {{matchWithKey.Match.Submitter}}@{{new Date(matchWithKey.Match.SubmissionTime).toLocaleString()}}</div>
         </div>
       </div>
     </div>
