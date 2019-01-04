@@ -36,3 +36,9 @@ indexes:
   - name: Tournament
   - name: Date
     direction: desc
+- kind: FFAMatch
+  ancestor: yes
+  properties:
+  - name: Tournament
+  - name: SubmissionTime
+    direction: desc
