@@ -21,9 +21,9 @@ func showAddFfaMatchResult(w http.ResponseWriter, r *http.Request) {
 	http.ServeFile(w, r, path.Join("static", "add_ffa_match_result.html"))
 }
 
-// MathcResult1v1 represents a match result between two players
+// MatchResult1v1 represents a match result between two players
 // Both winner and loser fields are array index, not player name
-type MathcResult1v1 struct {
+type MatchResult1v1 struct {
 	winner int
 	loser  int
 
@@ -36,9 +36,9 @@ type MathcResult1v1 struct {
 	radius int
 }
 
-// New1v1MatchResult creates a MathcResult1v1 object
-func New1v1MatchResult(winner int, loser int, middle float64) MathcResult1v1 {
-	return MathcResult1v1{
+// New1v1MatchResult creates a MatchResult1v1 object
+func New1v1MatchResult(winner int, loser int, middle float64) MatchResult1v1 {
+	return MatchResult1v1{
 		winner:                 winner,
 		loser:                  loser,
 		centerToMiddleDistance: math.Abs(float64(winner+loser)/2 - middle),
@@ -48,7 +48,7 @@ func New1v1MatchResult(winner int, loser int, middle float64) MathcResult1v1 {
 
 // Generate1v1MatchResults generates 1v1 match reuslts for a multi-player FFA
 // game.
-func Generate1v1MatchResults(numPlayers int) []MathcResult1v1 {
+func Generate1v1MatchResults(numPlayers int) []MatchResult1v1 {
 	// Our current logic for FFA: Emulate the elo results by generating emulated 1v1
 	// game results from each player against other players within their +-2
 	// ranking range, generating total of O(2N) 1v1 games.
@@ -78,7 +78,7 @@ func Generate1v1MatchResults(numPlayers int) []MathcResult1v1 {
 	var middle = (float64(numPlayers) - 1) / 2
 
 	// generate a slice containing all pairs that we need
-	var results []MathcResult1v1
+	var results []MatchResult1v1
 	for winner := 0; winner < numPlayers; winner++ {
 		for loser := winner + 1; loser < numPlayers && loser-winner <= 2; loser++ {
 			results = append(results, New1v1MatchResult(winner, loser, middle))
