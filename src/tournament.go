@@ -211,8 +211,8 @@ func requestDetailMatchResults(w http.ResponseWriter, r *http.Request) {
 
 	// Generate wins and losses in resultTable
 	for _, match := range matches {
-		var playerIndex []int
-		for _, playerID := range match.Players {
+		playerIndex := make([]int, len(match.Players))
+		for i, playerID := range match.Players {
 			index, exist := idMap[playerID]
 			if !exist {
 				http.Error(w,
@@ -220,12 +220,14 @@ func requestDetailMatchResults(w http.ResponseWriter, r *http.Request) {
 					http.StatusInternalServerError)
 				return
 			}
-			playerIndex = append(playerIndex, index)
+			playerIndex[i] = index
 		}
 		for i := range playerIndex {
 			for j := i + 1; j < len(playerIndex); j++ {
-				resultTable[i][j].Wins++
-				resultTable[j][i].Losses++
+				winner := playerIndex[i]
+				loser := playerIndex[j]
+				resultTable[winner][loser].Wins++
+				resultTable[loser][winner].Losses++
 			}
 		}
 	}
