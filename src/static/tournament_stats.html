@@ -32,6 +32,12 @@
   <div id="show_leaderboard" style="display:block">
     <table id="leaderboard" style="width:40%;margin-left:auto;margin-right:auto"></table>
   </div>
+  <div onclick="show_hide('show_detail_results')">
+    <h1>Detail Results</h1>
+  </div>
+  <div id="show_detail_results" style="display:block">
+    <table id="detail_result" style="width:80%;margin-left:auto;margin-right:auto"></table>
+  </div>
   <div onclick="show_hide('show_ffa_matches')">
     <h1>Recent FFA Matches</h1>
   </div>
@@ -66,7 +72,7 @@
                 <span>{{round(matchWithKey.Match.PostGameTrueSkillMu[index])}}</span>
               </td>
               <td>
-              <span>{{round(matchWithKey.Match.PreGameTrueSkillSigma[index])}}</span>
+                <span>{{round(matchWithKey.Match.PreGameTrueSkillSigma[index])}}</span>
                 <span>
                   ➨ </span>
                 <span>{{round(matchWithKey.Match.PostGameTrueSkillSigma[index])}}</span>
@@ -76,21 +82,6 @@
         </div>
       </div>
     </div>
-  </div>
-  <div onclick="show_hide('show_detail_results')">
-    <h1>Detail Results</h1>
-  </div>
-  <div id="show_detail_results" style="display:block">
-    <table id="detail_result" style="width:80%;margin-left:auto;margin-right:auto"></table>
-  </div>
-  <div onclick="show_hide('show_matches')">
-    <h1>Recent Matches</h1>
-  </div>
-  <div id="show_matches" style="display:block">
-    <p>Show <input type="text" size=2 value="30" id="num_matches"></input> matches.
-      <input type="button" value="Apply" onclick="getRecentMatches()"></input></h2>
-    </p>
-    <div id="matches"></div>
   </div>
   <div onclick="show_hide('show_greetings')">
     <h1>Recent Comments</h1>
