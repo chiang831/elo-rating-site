@@ -9,7 +9,7 @@ func TestGenerate1v1MatchResults(t *testing.T) {
 	//  * 2nd > 4th (index 1, 3)
 	//  * 1st > 2nd (index 0, 1)
 	//  * 3rd > 4th (index 2, 3)
-	wantedResults := []MathcResult1v1{
+	wantedResults := []MatchResult1v1{
 		New1v1MatchResult(1, 2, 1.5),
 		New1v1MatchResult(0, 2, 1.5),
 		New1v1MatchResult(1, 3, 1.5),
