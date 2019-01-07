@@ -156,6 +156,7 @@ func requestDetailMatchResults(w http.ResponseWriter, r *http.Request) {
 	}
 
 	tournamentKey, err := findExistingTournamentKey(ctx, tournamentName)
+	tournamentID := tournamentKey.IntID()
 
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
@@ -163,7 +164,7 @@ func requestDetailMatchResults(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Get user tournament stats
-	statsList, err := readAllUserStatsForTournament(ctx, tournamentKey.IntID())
+	statsList, err := readAllUserStatsForTournament(ctx, tournamentID)
 	if err != nil {
 		http.Error(w, "Failed to read tournament stats: "+err.Error(), http.StatusInternalServerError)
 		return
@@ -179,7 +180,7 @@ func requestDetailMatchResults(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Get all FFAMatches
-	query := datastore.NewQuery("FFAMatch").Ancestor(guestbookKey(ctx)).Filter("Tournament =", tournamentName)
+	query := datastore.NewQuery("FFAMatch").Ancestor(guestbookKey(ctx)).Filter("TournamentID =", tournamentID)
 	var matches []FFAMatch
 	if _, err := query.GetAll(ctx, &matches); err != nil {
 		http.Error(w, "Failed to read FFAMatches: "+err.Error(), http.StatusInternalServerError)
