@@ -223,9 +223,9 @@ func requestDetailMatchResults(w http.ResponseWriter, r *http.Request) {
 			playerIndex = append(playerIndex, index)
 		}
 		for i := range playerIndex {
-			for j := i + 1; j < len(playerIndex); i++ {
+			for j := i + 1; j < len(playerIndex); j++ {
 				resultTable[i][j].Wins++
-				resultTable[j][i].Losses--
+				resultTable[j][i].Losses++
 			}
 		}
 	}
