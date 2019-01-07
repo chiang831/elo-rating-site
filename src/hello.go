@@ -44,6 +44,7 @@ func init() {
 	http.HandleFunc("/request_user_profiles", requestUserProfiles)
 	http.HandleFunc("/request_tournament_stats", requestTournamentStats)
 	http.HandleFunc("/request_detail_results", requestDetailMatchResults)
+	http.HandleFunc("/request_legacy_detail_results", requestLegacyDetailMatchResults)
 	http.HandleFunc("/request_greetings", requestGreetings)
 	http.HandleFunc("/request_recent_matches", requestRecentMatches)
 	http.HandleFunc("/request_recent_ffa_matches", requestRecentFFAMatches)
@@ -286,6 +287,73 @@ func requestUserProfiles(w http.ResponseWriter, r *http.Request) {
 	js, errJs := json.Marshal(userProfileToShows)
 	if errJs != nil {
 		http.Error(w, errJs.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.Write(js)
+}
+
+func requestLegacyDetailMatchResults(w http.ResponseWriter, r *http.Request) {
+	c := appengine.NewContext(r)
+	// Get users
+	queryUser := datastore.NewQuery("UserProfile").Ancestor(guestbookKey(c)).Order("-Rating")
+	var users []UserProfile
+	if _, err := queryUser.GetAll(c, &users); err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	// Get matches
+	queryMatch := datastore.NewQuery("Match").Ancestor(guestbookKey(c))
+	var matches []Match
+	if _, err := queryMatch.GetAll(c, &matches); err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	// Name to index map
+	mp := make(map[string]int)
+	for i, u := range users {
+		mp[u.Name] = i
+	}
+	// Set usernames
+	usernames := make([]string, len(users))
+	for i, u := range users {
+		usernames[i] = u.Name
+	}
+	// Set resultTable
+	resultTable := make([][]DetailMatchResultEntry, len(users))
+	for i := range resultTable {
+		resultTable[i] = make([]DetailMatchResultEntry, len(users))
+		for j := range resultTable[i] {
+			resultTable[i][j].Wins = 0
+			resultTable[i][j].Losses = 0
+		}
+	}
+	for _, m := range matches {
+		idxW, existW := mp[m.Winner]
+		idxL, existL := mp[m.Loser]
+		if !existW || !existL {
+			http.Error(w, "Datastore Error", http.StatusInternalServerError)
+			return
+		}
+		resultTable[idxW][idxL].Wins++
+		resultTable[idxL][idxW].Losses++
+	}
+	for i := range resultTable {
+		for j := range resultTable[i] {
+			resultTable[i][j].Color = getColor(users[i], users[j], resultTable[i][j].Wins, resultTable[i][j].Losses)
+		}
+	}
+
+	// Return JSON
+	matchData := MatchData{
+		Usernames:   usernames,
+		ResultTable: resultTable,
+	}
+
+	js, err_js := json.Marshal(matchData)
+	if err_js != nil {
+		http.Error(w, err_js.Error(), http.StatusInternalServerError)
 		return
 	}
 
