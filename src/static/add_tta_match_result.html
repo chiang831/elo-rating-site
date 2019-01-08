@@ -15,29 +15,23 @@
 </head>
 
 <body onload="onLoad()">
-  <h1>Add a Match Result</h1>
+  <h1>Add a TTA Match Result</h1>
 
   <!--Container is hidden by display:none at the beginning, and will only be shown when initialized-->
   <div id="container" class="container-fluid" style="width:80%; text-align:left; display:none;">
     <h2>Select a Tournament:</h2>
     <v-select id="tournament_selector" v-model="selected" :options="options"></v-select>
-    <h2>Select next user to add:</h2>
+    <h2>Select next player to add:</h2>
     <v-select id="user_selector" v-model="selected" :options="options"></v-select>
     <button class="btn-success" onclick="addUser()">Add Player</button>
     <h2>Player Ranking</h2>
-    <div id="players">
-      <div v-for="(player, i) in players">
-        <h4>{{ player }}</h4>
-        
-        <!-- don't render checkbox for the last item-->
-        <div v-if="i < players.length-1">
-          <input type="checkbox" v-model="draws[i]">Draw</input>
-        </div>
-      </div>
+    <div id="ranking">
+      <h3 v-for="player in ranking">
+        {{ player }}
+      </h3>
     </div>
-    <button class="btn-success" onclick="submitResult()">Submit Result</button>
+    <button class="btn-success" onclick="submitRanking()">Submit Ranking</button>
   </div>
 </body>
 
 </html>
-
