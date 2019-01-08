@@ -44,6 +44,7 @@ func init() {
 	http.HandleFunc("/request_user_profiles", requestUserProfiles)
 	http.HandleFunc("/request_tournament_stats", requestTournamentStats)
 	http.HandleFunc("/request_detail_results", requestDetailMatchResults)
+	http.HandleFunc("/request_legacy_detail_results", requestLegacyDetailMatchResults)
 	http.HandleFunc("/request_greetings", requestGreetings)
 	http.HandleFunc("/request_recent_matches", requestRecentMatches)
 	http.HandleFunc("/request_recent_ffa_matches", requestRecentFFAMatches)
@@ -293,45 +294,22 @@ func requestUserProfiles(w http.ResponseWriter, r *http.Request) {
 	w.Write(js)
 }
 
-func requestDetailMatchResults(w http.ResponseWriter, r *http.Request) {
-	ctx := appengine.NewContext(r)
-
-	tournamentName := r.FormValue("tournament")
-	if tournamentName == "" {
-		tournamentName = "Default"
-	}
-
-	tournamentKey, err := findExistingTournamentKey(ctx, tournamentName)
-
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
-		return
-	}
-
-	// Get user tournament stats
-	statsList, err := readAllUserStatsForTournament(ctx, tournamentKey.IntID())
-	if err != nil {
-		http.Error(w, "Failed to read tournament stats: "+err.Error(), http.StatusInternalServerError)
-		return
-	}
-
-	users := make([]UserProfile, len(statsList))
-	for i, stats := range statsList {
-		users[i], err = readUserProfile(ctx, stats.UserID)
-		if err != nil {
-			http.Error(w, "Failed to read user profile: "+err.Error(), http.StatusInternalServerError)
-			return
-		}
-	}
-
-	// Get matches
-	queryMatch := datastore.NewQuery("Match").Ancestor(guestbookKey(ctx)).Filter("Tournament =", tournamentName)
-	var matches []Match
-	if _, err := queryMatch.GetAll(ctx, &matches); err != nil {
+func requestLegacyDetailMatchResults(w http.ResponseWriter, r *http.Request) {
+	c := appengine.NewContext(r)
+	// Get users
+	queryUser := datastore.NewQuery("UserProfile").Ancestor(guestbookKey(c)).Order("-Rating")
+	var users []UserProfile
+	if _, err := queryUser.GetAll(c, &users); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-
+	// Get matches
+	queryMatch := datastore.NewQuery("Match").Ancestor(guestbookKey(c))
+	var matches []Match
+	if _, err := queryMatch.GetAll(c, &matches); err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
 	// Name to index map
 	mp := make(map[string]int)
 	for i, u := range users {
@@ -373,9 +351,9 @@ func requestDetailMatchResults(w http.ResponseWriter, r *http.Request) {
 		ResultTable: resultTable,
 	}
 
-	js, errJs := json.Marshal(matchData)
-	if errJs != nil {
-		http.Error(w, errJs.Error(), http.StatusInternalServerError)
+	js, err := json.Marshal(matchData)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 

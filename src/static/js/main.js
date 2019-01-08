@@ -10,7 +10,7 @@ function getLeaderboard() {
 }
 
 function getDetailMatchResult() {
-  httpGetAsync(location.origin + "/request_detail_results", fillInDetailMatchResult);
+  httpGetAsync(location.origin + "/request_legacy_detail_results", fillInDetailMatchResult);
 }
 
 function getRecentMatches() {
