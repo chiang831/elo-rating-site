@@ -58,6 +58,7 @@ type UserProfileToShow struct {
 // DetailMatchResultEntry wrapper for datastore
 type DetailMatchResultEntry struct {
 	Wins   int
+	Draws  int
 	Losses int
 	Color  string
 }

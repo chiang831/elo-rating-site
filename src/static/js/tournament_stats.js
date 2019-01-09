@@ -114,7 +114,7 @@ function fillInDetailMatchResult(r) {
     for (var j in resultRow) {
       resultEntry = resultRow[j];
       row += "<td style=\"background-color:" + resultEntry.Color + "\">" +
-        resultEntry.Wins + " / " + resultEntry.Losses + "</td>";
+        resultEntry.Wins + " / " + resultEntry.Draws + "/" + resultEntry.Losses + "</td>";
     }
     row += "</tr>";
     content += row;
