@@ -3,112 +3,58 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <head>
-    <title>Add a match result</title>
-    <script src="https://unpkg.com/vue@latest"></script>
-    <script src="https://unpkg.com/vue-select@latest"></script>
-    <link type="text/css" rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
-    <link type="text/css" rel="stylesheet" href="/static/styles.css">
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width">
-    <script src="/static/js/http.js" async=true></script>
-    <script src="/static/js/add_tta_match_result.js" async=true></script>
+  <title>Add a match result</title>
+  <script src="https://unpkg.com/vue@latest"></script>
+  <script src="https://unpkg.com/vue-select@latest"></script>
+  <link type="text/css" rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+  <link type="text/css" rel="stylesheet" href="/static/styles.css">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width">
+  <script src="/static/js/http.js" async=true></script>
+  <script src="/static/js/add_tta_match_result.js" async=true></script>
 </head>
 
 <body onload="onLoad()">
-    <h1>Add a TTA Match Result</h1>
+  <h1>Add a TTA Match Result</h1>
 
-    <!--Container is hidden by display:none at the beginning, and will only be shown when initialized-->
-    <div id="container" class="container-fluid" style="width:80%; text-align:left; display:none;">
-        <h2>Select a Tournament:</h2>
-        <v-select id="tournament_selector" v-model="selected" :options="options"></v-select>
-        <h2>Select next player to add:</h2>
-        <v-select id="user_selector" v-model="selected" :options="options"></v-select>
-        <button class="btn-success" onclick="addUser()">Add Player</button>
+  <!--Container is hidden by display:none at the beginning, and will only be shown when initialized-->
+  <div id="container" class="container-fluid" style="width:80%; text-align:left; display:none;">
+    <h2>Select a Tournament:</h2>
+    <v-select id="tournament_selector" v-model="selected" :options="options"></v-select>
+    <h2>Select next player to add:</h2>
+    <v-select id="user_selector" v-model="selected" :options="options"></v-select>
+    <button class="btn-success" onclick="addUser()">Add Player</button>
 
-        <h2>Match Result:</h2>
-        <table>
-            <!--<tbody>-->
-            <tr>
-                <td></td>
-                <td>User</td>
-                <td>Score</td>
-            </tr>
-            <tr>
-                <td>Player 1</td>
-                <td>
-
-                    <div id="player_one">
-                        <input type="text" v-model="value" list="options" placeholder="required">
-                        <datalist id="options">
-                            <option v-for="value in options">{{ value }}</option>
-                        </datalist>
-                    </div>
-
-                </td>
-                <td>
-                    <div id="player_one_score">
-                        <input v-model.number="value" type="number">
-                    </div>
-                </td>
-            </tr>
-            <tr>
-                <td>Player 2</td>
-                <td>
-                    <div id="player_two">
-                        <input type="text" v-model="value" list="options" placeholder="required">
-                        <datalist id="options">
-                            <option v-for="value in options">{{ value }}</option>
-                        </datalist>
-                    </div>
-                </td>
-                <td>
-                    <div id="player_two_score">
-                        <input v-model.number="value" type="number">
-                </td>
-            </tr>
-            <tr>
-                <td>Player 3</td>
-                <td>
-                    <div id="player_three">
-                        <input type="text" v-model="value" list="options" placeholder="optional">
-                        <datalist id="options">
-                            <option v-for="value in options">{{ value }}</option>
-                        </datalist>
-                    </div>
-                </td>
-                <td>
-                    <div id="player_three_score">
-                        <input v-model.number="value" type="number">
-                </td>
-            </tr>
-            <tr>
-                <td>Player 4</td>
-                <td>
-
-                    <div id="player_four">
-                        <input type="text" v-model="value" list="options" placeholder="optional">
-                        <datalist id="options">
-                            <option v-for="value in options">{{ value }}</option>
-                        </datalist>
-                    </div>
-
-                </td>
-                <td>
-                    <div id="player_four_score">
-                        <input v-model.number="value" type="number">
-                </td>
-            </tr>
-            <!--</tbody>-->
-        </table>
-        <button class="btn-success" onclick="preview()">Preview</button>
-        <h2>Player Ranking</h2>
-        <div id="ranking">
-            <h3 v-for="player in ranking">
-                {{ player }}
-            </h3>
-        </div>
-        <button class="btn-success" onclick="submitRanking()">Submit Ranking</button>
+    <h2>Match Result:</h2>
+    <div id="match_table">
+      <table>
+        <tr>
+          <td></td>
+          <th>User</th>
+          <th>Score</th>
+        </tr>
+        <tr v-for="(p, index) in player">
+          <th>{{ header[index]}} </th>
+          <td>
+            <input type="text" v-model="player[index]" list="options">
+            <datalist id="options">
+              <option v-for="option in options">{{ option }}</option>
+          </td>
+          <td>
+            <input v-model.number="score[index]" type="number">
+          </td>
+        </tr>
+      </table>
     </div>
+    <button class="btn-success" onclick="preview()">Preview</button>
+    <h2>Player Ranking</h2>
+    <div id="ranking">
+      <h3 v-for="player in ranking">
+        {{ player }}
+      </h3>
+    </div>
+    <button class="btn-success" onclick="submitRanking()">Submit Ranking</button>
+  </div>
 </body>
 
 </html>
