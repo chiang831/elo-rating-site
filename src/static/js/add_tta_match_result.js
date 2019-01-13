@@ -54,7 +54,7 @@ function handleTournamentsResponse(responseText) {
 }
 
 function getTournamentNameFromURL() {
-  // Expected URL is "http://..../tournament/<name>/add_ffa_match_result"
+  // Expected URL is "http://..../tournament/<name>/add_tta_match_result"
   tokens = window.location.href.split("/");
   return tokens[tokens.length - 2];
 }
