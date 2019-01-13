@@ -2,7 +2,6 @@ Vue.component('v-select', VueSelect.VueSelect);
 
 var users = null;
 var userNames = null;
-var userSelector = null;
 
 var tournaments = null;
 var tournamentNames = null;
@@ -81,16 +80,6 @@ function initializePage() {
   })
 
 
-  userSelector = new Vue({
-    el: '#user_selector',
-    data: function() {
-      return {
-        options: userNames,
-        selected: null
-      }
-    }
-  });
-
   playerRankingList = new Vue({
     el: '#ranking',
     data: {
@@ -106,26 +95,11 @@ function addUser() {
   if (!pageInitialized) {
     return;
   }
-
   // Check if tournament is selected
   if (tournamentSelector.selected == null) {
     alert("You must select a tournament!");
     return;
   }
-
-  // Check if player is selected
-  if (userSelector.selected == null) {
-    alert("You must select a player!");
-    return;
-  }
-
-  // Check if the player is already added into the ranking
-  if (playerRankingList.ranking.includes(userSelector.selected)) {
-    alert("Player " + userSelector.selected + " is already in ranking list!");
-    return;
-  }
-
-  playerRankingList.ranking.push(userSelector.selected);
 }
 
 function preview() {
