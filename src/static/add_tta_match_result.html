@@ -21,9 +21,29 @@
   <div id="container" class="container-fluid" style="width:80%; text-align:left; display:none;">
     <h2>Select a Tournament:</h2>
     <v-select id="tournament_selector" v-model="selected" :options="options"></v-select>
-    <h2>Select next player to add:</h2>
-    <v-select id="user_selector" v-model="selected" :options="options"></v-select>
-    <button class="btn-success" onclick="addUser()">Add Player</button>
+
+    <h2>Match Result:</h2>
+    <div id="match_table">
+      <table>
+        <tr>
+          <th></th>
+          <th>User</th>
+          <th>Score</th>
+        </tr>
+        <tr v-for="(p, index) in player">
+          <th>{{ header[index]}} </th>
+          <td>
+            <input type="text" v-model="player[index]" list="options">
+            <datalist id="options">
+              <option v-for="option in options">{{ option }}</option>
+          </td>
+          <td>
+            <input v-model.number="score[index]" type="number">
+          </td>
+        </tr>
+      </table>
+    </div>
+    <button class="btn-success" onclick="preview()">Preview</button>
     <h2>Player Ranking</h2>
     <div id="ranking">
       <h3 v-for="player in ranking">

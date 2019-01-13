@@ -37,6 +37,11 @@ func showTournamentStats(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
+		if action == "add_tta_match_result" {
+			http.ServeFile(w, r, path.Join("static", "add_tta_match_result.html"))
+			return
+		}
+
 		http.Error(w, "action: "+action+" is not supported", http.StatusBadRequest)
 
 	}
