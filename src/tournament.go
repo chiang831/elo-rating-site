@@ -210,6 +210,7 @@ func requestDetailMatchResults(w http.ResponseWriter, r *http.Request) {
 		resultTable[i] = make([]DetailMatchResultEntry, len(users))
 		for j := range resultTable[i] {
 			resultTable[i][j].Wins = 0
+			resultTable[i][j].Draws = 0
 			resultTable[i][j].Losses = 0
 		}
 	}
@@ -229,10 +230,24 @@ func requestDetailMatchResults(w http.ResponseWriter, r *http.Request) {
 		}
 		for i := range playerIndex {
 			for j := i + 1; j < len(playerIndex); j++ {
+				isDraw := true
+				for d := i; d < j; d++ {
+					if match.Draws[d] == false {
+						isDraw = false
+						break
+					}
+				}
+
 				winner := playerIndex[i]
 				loser := playerIndex[j]
-				resultTable[winner][loser].Wins++
-				resultTable[loser][winner].Losses++
+
+				if isDraw {
+					resultTable[winner][loser].Draws++
+					resultTable[loser][winner].Draws++
+				} else {
+					resultTable[winner][loser].Wins++
+					resultTable[loser][winner].Losses++
+				}
 			}
 		}
 	}
