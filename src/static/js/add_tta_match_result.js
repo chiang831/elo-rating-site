@@ -7,17 +7,6 @@ var tournaments = null;
 var tournamentNames = null;
 var tournamentSelector = null;
 
-var playerRankingList = null;
-
-var playerOne = null;
-var playerOneScore = null;
-var playerTwo = null;
-var playerTwoScore = null;
-var playerThree = null;
-var playerThreeScore = null;
-var playerFour = null;
-var playerFourScore = null;
-
 var pageInitialized = false;
 
 function onLoad() {
@@ -80,20 +69,21 @@ function initializePage() {
     el: "#match_table",
     data: {
       header: ["Player 1", "Player 2", "Player 3", "Player 4"],
-      placeholder: ["required", "required", "optional", "optional"],
       player: ["", "", "", ""],
       score: ["", "", "", ""],
       options: userNames
     },
   })
-
-
-  playerRankingList = new Vue({
-    el: '#ranking',
+  rankingTable = new Vue({
+    el: "#ranking_table",
     data: {
-      ranking: []
-    }
+      player: [],
+      ranking: [],
+      order: [],
+      score: [],
+    },
   })
+
 
   document.getElementById('container').style.display = 'block';
   pageInitialized = true;
@@ -111,32 +101,57 @@ function addUser() {
 }
 
 function preview() {
-  alert("Not implemented! Currently we push the users and scores we got in Player Ranking to show we got them correctly.");
-  playerRankingList.ranking = [];
-  playerRankingList.ranking.push(matchTable.player);
-  playerRankingList.ranking.push(matchTable.score);
+  var i;
+  for (i = 0; i < 2; i++) {
+    if (matchTable.player[i] == "" ||
+      matchTable.score[i] == ""
+    ) {
+      alert('Player 1 and Player 2 must be set.');
+      return;
+    }
+
+  }
+  var num_players = 2;
+  for (i = 2; i < matchTable.player.length; i++) {
+    if (matchTable.player[i] != "" &&
+      matchTable.score[i] != "") {
+      if (i >= num_players + 1) {
+
+        alert('Player ' + Number(num_players + 1) + ' is not specified but Player ' + Number(i + 1) + ' is. This is an error.!');
+        return;
+
+      }
+      num_players = i + 1;
+
+    }
+    if (
+      matchTable.player[i] == "" != matchTable.score[i] == ""
+    ) {
+      alert('When Player ' + Number(num_players + 1) + ' is set, you must set both User and Score!');
+      return;
+    }
+
+  }
+
+
+  const sorted = matchTable.score.slice(0, num_players).sort(
+    function(a, b) {
+      return b - a
+    }
+  )
+  var rank = matchTable.score.slice(0, num_players).map(x => sorted.indexOf(x) + 1)
+  rankingTable.ranking = rank;
+  rankingTable.player = matchTable.player.slice(0, num_players);
+  rankingTable.score = matchTable.score.slice(0, num_players);
+  rankingTable.order = []
+  for (i = 0; i < num_players; i++) {
+    rankingTable.order.push(i + 1);
+  }
 }
 
 function submitRanking() {
   if (!pageInitialized) {
     return;
   }
-
-  var matchResult = {
-    // Fields must start with capital letters to fit golang requirement
-    Tournament: tournamentSelector.selected,
-    Ranking: playerRankingList.ranking
-  };
-
-  if (matchResult.Ranking.length < 2) {
-    alert("At least 2 players are required in a FFA ranking!");
-    return;
-  }
-
-  httpPostJsonAsync(
-    location.origin + "/submit_ffa_match_result",
-    matchResult,
-    function(responseText) {
-      window.location.href = "/tournament/" + matchResult.Tournament;
-    });
+  alert("Not implemented! Your result is not submitted.");
 }
