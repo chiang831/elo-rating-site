@@ -44,24 +44,26 @@
       </table>
     </div>
     <button class="btn-success" onclick="preview()">Preview</button>
-    <h2>Player Ranking</h2>
     <div id="ranking_table">
-      <table>
-        <tr>
-          <th>Ranking</th>
-          <th>User</th>
-          <th>Score</th>
-          <th>Order</th>
-        </tr>
-        <tr v-for="(p, index) in player">
-          <td>{{ ranking[index]}} </td>
-          <td>{{ player[index]}} </td>
-          <td>{{ score[index]}} </td>
-          <td>{{ order[index]}} </td>
-        </tr>
-      </table>
+      <div v-if="player.length>0">
+        <h2>Player Ranking</h2>
+        <table>
+          <tr>
+            <th>Ranking</th>
+            <th>User</th>
+            <th>Score</th>
+            <th>Order</th>
+          </tr>
+          <tr v-for="(p, index) in player">
+            <td>{{ ranking[index]}} </td>
+            <td>{{ player[index]}} </td>
+            <td>{{ score[index]}} </td>
+            <td>{{ order[index]}} </td>
+          </tr>
+        </table>
+        <button class="btn-success" onclick="submitRanking()">Submit Ranking</button>
+      </div>
     </div>
-    <button class="btn-success" onclick="submitRanking()">Submit Ranking</button>
   </div>
 </body>
 
