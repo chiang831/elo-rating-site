@@ -4,17 +4,14 @@ var users = null;
 var userNames = null;
 var userSelector = null;
 
-var tournaments = null;
-var tournamentNames = null;
-var tournamentSelector = null;
-
 var playerRankingList = null;
 
 var pageInitialized = false;
 
+var currentTournament = getTournamentNameFromURL();
+
 function onLoad() {
   requestUsers();
-  requestTournaments();
 }
 
 function requestUsers() {
@@ -31,20 +28,6 @@ function handleUsersResponse(responseText) {
   initializePage();
 }
 
-function requestTournaments() {
-  console.log("get tournaments");
-  // Get available user data from JSON API.
-  httpGetAsync(location.origin + "/request_tournaments", handleTournamentsResponse);
-}
-
-function handleTournamentsResponse(responseText) {
-  tournaments = JSON.parse(responseText);
-  console.log("tournaments = " + tournaments);
-  tournamentsNames = tournaments.map(t => t.Name);
-  console.log("tournament names = " + tournamentsNames);
-  initializePage();
-}
-
 function getTournamentNameFromURL() {
   // Expected URL is "http://..../tournament/<name>/add_ffa_match_result"
   tokens = window.location.href.split("/");
@@ -52,21 +35,9 @@ function getTournamentNameFromURL() {
 }
 
 function initializePage() {
-  if (users == null || tournaments == null) {
+  if (users == null) {
     return;
   }
-
-  var currentTournament = getTournamentNameFromURL();
-
-  tournamentSelector = new Vue({
-    el: '#tournament_selector',
-    data: function () {
-      return {
-        options: tournamentsNames,
-        selected: currentTournament
-      }
-    }
-  })
 
   userSelector = new Vue({
     el: '#user_selector',
@@ -95,12 +66,6 @@ function addUser() {
     return;
   }
 
-  // Check if tournament is selected
-  if (tournamentSelector.selected == null) {
-    alert("You must select a tournament!");
-    return;
-  }
-
   // Check if player is selected
   if (userSelector.selected == null) {
     alert("You must select a player!");
@@ -126,7 +91,7 @@ function submitResult() {
 
   var matchResult = {
     // Fields must start with capital letters to fit golang requirement
-    Tournament: tournamentSelector.selected,
+    Tournament: currentTournament,
     Players: playerRankingList.players,
     Draws: playerRankingList.draws
   };
