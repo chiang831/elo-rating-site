@@ -33,6 +33,13 @@ func showTournamentStats(w http.ResponseWriter, r *http.Request) {
 		action := tokens[3]
 
 		if action == "add_ffa_match_result" {
+			tournament := tokens[2]
+			//TODO: save specific UI information in datastore so we can serve different
+			//page for each tournament.
+			if tournament == "FunPingClub" {
+				http.ServeFile(w, r, path.Join("static", "add_2p_match_result.html"))
+				return
+			}
 			http.ServeFile(w, r, path.Join("static", "add_ffa_match_result.html"))
 			return
 		}
