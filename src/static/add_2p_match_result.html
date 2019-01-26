@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<head>
+  <title>Add a match result</title>
+  <script src="https://unpkg.com/vue@latest"></script>
+  <script src="https://unpkg.com/vue-select@latest"></script>
+  <link type="text/css" rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+  <link type="text/css" rel="stylesheet" href="/static/styles.css">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width">
+  <script src="/static/js/http.js" async=true></script>
+  <script src="/static/js/add_2p_match_result.js" async=true></script>
+</head>
+
+<body onload="onLoad()">
+  <h1>Add a Match Result</h1>
+
+  <!--Container is hidden by display:none at the beginning, and will only be shown when initialized-->
+  <div id="container" class="container-fluid" style="width:80%; text-align:left; display:none; margin-bottom:15px">
+    <h2>Winner</h2>
+    <v-select id="winner_selector" v-model="selected" :options="options" :on-change="selectedChanged"></v-select>
+    <textarea name="winner" style="display:none">{{selected}}</textarea>
+    <h2>Loser</h2>
+    <v-select id="loser_selector" v-model="selected" :options="options" :on-change="selectedChanged"></v-select>
+    <textarea name="loser" style="display:none">{{selected}}</textarea>
+  </div>
+  <button class="btn-success" onclick="submitResult()">Submit Result</button>
+</body>
+
+</html>
+
