@@ -2,9 +2,6 @@ Vue.component('v-select', VueSelect.VueSelect);
 
 var users = null;
 var userNames = null;
-var userSelector = null;
-
-var playerRankingList = null;
 
 var pageInitialized = false;
 
@@ -39,49 +36,38 @@ function initializePage() {
     return;
   }
 
-  userSelector = new Vue({
-    el: '#user_selector',
+  winnerSelector = new Vue({
+    el: '#winner_selector',
     data: function () {
       return {
         options: userNames,
         selected: null
       }
+    },
+    methods: {
+      selectedChanged : function (value) {
+        this.selected = value;
+      }
     }
   });
 
-  playerRankingList = new Vue({
-    el: '#players',
-    data: {
-      players: [],
-      draws: []
+  loserSelector = new Vue({
+    el: '#loser_selector',
+    data: function () {
+      return {
+        options: userNames,
+        selected: null
+      }
+    },
+    methods: {
+      selectedChanged : function (value) {
+        this.selected = value;
+      }
     }
-  })
+  });
 
   document.getElementById('container').style.display = 'block';
   pageInitialized = true;
-}
-
-function addUser() {
-  if (!pageInitialized) {
-    return;
-  }
-
-  // Check if player is selected
-  if (userSelector.selected == null) {
-    alert("You must select a player!");
-    return;
-  }
-
-  // Check if the player is already added into the ranking
-  if (playerRankingList.players.includes(userSelector.selected)) {
-    alert("Player " + userSelector.selected + " is already in ranking list!");
-    return;
-  }
-
-  playerRankingList.players.push(userSelector.selected);
-  if (playerRankingList.players.length > 1) {
-    playerRankingList.draws.push(false);
-  }
 }
 
 function submitResult() {
@@ -89,17 +75,30 @@ function submitResult() {
     return;
   }
 
+  // Check if a winner is selected
+  if (winnerSelector.selected == null) {
+    alert("You must select a winner!");
+    return;
+  }
+
+  // Check if a lower is selected
+  if (loserSelector.selected == null) {
+    alert("You must select a loser!");
+    return;
+  }
+
+  // Check if winner == loser
+  if (winnerSelector.selected == loserSelector.selected) {
+    alert("You must select two different players!");
+    return;
+  }
+
   var matchResult = {
     // Fields must start with capital letters to fit golang requirement
     Tournament: currentTournament,
-    Players: playerRankingList.players,
-    Draws: playerRankingList.draws
+    Players: [winnerSelector.selected, loserSelector.selected],
+    Draws: [false]
   };
-
-  if (matchResult.Players.length < 2) {
-    alert("At least 2 players are required in a FFA ranking!");
-    return;
-  }
 
   console.log("Preparing match result: ");
   console.log(matchResult);
